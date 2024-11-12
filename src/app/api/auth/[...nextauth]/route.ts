@@ -11,15 +11,19 @@ const handler = NextAuth({
         })
     ],
     callbacks: {
-        async session({ session, user, token }){
+        async session({ session, token }){
             
-            const sessionUser = await User.findOne({
-                email: session.user.email
-            })
+            if(token){
+                session.user._id = token._id?.toString();
+                session.user.username = token.username;
+                session.user.name = token.name;
+                session.user.email = token.email;
+                session.user.image = token.image;
+                session.user.role = token.role;
+                session.user.isVefified = token.isVefified;
+            }   
 
-            session.user.id = sessionUser._id.toString()
-
-            return session
+            return session;
 
         },
 
@@ -29,13 +33,13 @@ const handler = NextAuth({
 
                 //check if the user already exists
                 const userExists = await User.findOne({
-                    email: profile.email
+                    email: profile?.email
                 })
 
                 //if not, create a new user
                 if(!userExists){
                     await User.create({
-                        email: profile.email
+                        email: profile?.email
                       })
                 }
 
@@ -45,8 +49,27 @@ const handler = NextAuth({
                 console.log(error)
                 return false;
             }
+        },
+
+        async jwt({ token, user }){
+            if(user){
+                token._id = user._id?.toString();
+                token.email = user.email;
+                token.name = user.name;
+                token.image = user.image;
+                token.role = user.role; 
+                token.isVefified = user.isVefified;
+                token.username = user.username;
+            }
+
+            return token;
         }
     },
+
+    session: {
+        strategy: "jwt"
+    },
+    secret: process.env.JWT_SECRET
 
 })
 
