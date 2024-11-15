@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum PhysicalActivityLevel {
+  low
+  moderate
+  high
+}
+
+enum Goals {
+  loseWeight
+  gainWeight
+  maintainWeight
+}
+
+enum DietPreference {
+  vegetarian
+  vegan
+  paleo
+  keto
+  mediterranean
+}
+
+enum Region {
+  southAmerican
+  northAmerican
+  indianSubcontinent
+  european
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("sessions")
+}
+
+model User {
+id                   String    @id @default(cuid())
+  name                 String?
+  email                String?   @unique
+  emailVerified        DateTime? @map("email_verified")
+  image                String?
+  hashedPassword       String?   
+  passwordResetAt      DateTime? 
+  accounts             Account[]
+  sessions             Session[]
+  yearOfBirth           Int?      @map("year_of_birth")
+  height                Float?
+  weight                Float?
+  gender                Gender ?   @default(other)
+  physicalActivityLevel PhysicalActivityLevel?
+  goals                 Goals?
+  dietPreference        DietPreference?
+  bmi                   Float?
+  foodAllergies         String[]  @map("food_allergies")
+  foodsToAvoid          String[]  @map("foods_to_avoid")
+  region                Region?
+  
+  @@map("users")
+}
+
+model VerificationToken {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  attempts   Int      @default(0)  // Track number of verification attempts
+  createdAt  DateTime @default(now())
+  type       String   @default("EMAIL") // Can be "EMAIL", "PASSWORD_RESET", etc.
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
