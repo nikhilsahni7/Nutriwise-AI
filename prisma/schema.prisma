@@ -19,9 +19,11 @@ enum Gender {
 }
 
 enum PhysicalActivityLevel {
-  low
-  moderate
-  high
+  level1
+  level2
+  level3
+  level4
+  level5
 }
 
 enum Goals {
@@ -39,9 +41,9 @@ enum DietPreference {
 }
 
 enum Region {
-  southAmerican
-  northAmerican
-  indianSubcontinent
+  south_america
+  north_america
+  indian_subcontinent
   european
 }
 
@@ -73,7 +75,7 @@ model Session {
 }
 
 model User {
-id                   String    @id @default(cuid())
+  id                   String    @id @default(cuid())
   name                 String?
   email                String?   @unique
   emailVerified        DateTime? @map("email_verified")
@@ -82,17 +84,17 @@ id                   String    @id @default(cuid())
   passwordResetAt      DateTime? 
   accounts             Account[]
   sessions             Session[]
-  yearOfBirth           Int?      @map("year_of_birth")
-  height                Float?
-  weight                Float?
-  gender                Gender ?   @default(other)
+  yearOfBirth          Int?      @map("year_of_birth")
+  height               Float?
+  weight               Float?
+  gender               Gender ?   @default(other)
   physicalActivityLevel PhysicalActivityLevel?
-  goals                 Goals?
-  dietPreference        DietPreference?
-  bmi                   Float?
-  foodAllergies         String[]  @map("food_allergies")
-  foodsToAvoid          String[]  @map("foods_to_avoid")
-  region                Region?
+  goals                Goals?
+  dietPreference       DietPreference?
+  bmi                  Float?
+  foodAllergies        String[]  @map("food_allergies")
+  foodsToAvoid         String[]  @map("foods_to_avoid")
+  region               Region?
   
   @@map("users")
 }

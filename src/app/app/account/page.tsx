@@ -1,13 +1,13 @@
-import React from 'react'
+import React from "react";
 
-import UserAccount from '@/components/Account/UserAccount'
+import UserAccount from "@/components/Account/UserAccount";
 
 const page = () => {
   return (
     <div>
-        <UserAccount />
+      <UserAccount />
     </div>
-  )
-}
+  );
+};
 
-export default page
+export default page;

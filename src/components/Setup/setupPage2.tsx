@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,30 +12,46 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 const formSchema = z.object({
   goals: z.enum(["gain", "lose", "maintain"], {
     required_error: "Please select a goal.",
   }),
-  dietPreference: z.enum(["omnivorous", "vegetarian", "vegan", "pescatarian", "keto", "paleo"], {
-    required_error: "Please select a diet preference.",
-  }),
-})
+  dietPreference: z.enum(
+    ["omnivorous", "vegetarian", "vegan", "pescatarian", "keto", "paleo"],
+    {
+      required_error: "Please select a diet preference.",
+    }
+  ),
+});
 
-export default function SetupPage2({setSetupPageNum}){
+export default function SetupPage2({}) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       goals: undefined,
       dietPreference: undefined,
     },
-  })
+  });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    console.log(values);
     // Here you would typically send the data to your backend
     // and then navigate to the next stage
   }
@@ -44,7 +60,10 @@ export default function SetupPage2({setSetupPageNum}){
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Nutrition Preferences</CardTitle>
-        <CardDescription>Let's customize your nutrition plan based on your goals and preferences.</CardDescription>
+        <CardDescription>
+          Let's customize your nutrition plan based on your goals and
+          preferences.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -67,7 +86,10 @@ export default function SetupPage2({setSetupPageNum}){
                       <SelectItem value="maintain">Maintain Weight</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>Choose the goal that best aligns with your current objectives.</FormDescription>
+                  <FormDescription>
+                    Choose the goal that best aligns with your current
+                    objectives.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -93,15 +115,20 @@ export default function SetupPage2({setSetupPageNum}){
                       <SelectItem value="paleo">Paleo</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>Select the diet that best describes your eating habits or preferences.</FormDescription>
+                  <FormDescription>
+                    Select the diet that best describes your eating habits or
+                    preferences.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">Next Stage</Button>
+            <Button type="submit" className="w-full">
+              Next Stage
+            </Button>
           </form>
         </Form>
       </CardContent>
     </Card>
-  )
+  );
 }

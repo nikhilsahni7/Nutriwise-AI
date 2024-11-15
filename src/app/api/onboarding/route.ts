@@ -1,4 +1,4 @@
-// app/api/profile/route.ts
+// app/api/onboarding/route.ts
 import { NextResponse, NextRequest } from "next/server";
 import { auth } from "auth";
 import prisma from "@/lib/db";
@@ -10,15 +10,11 @@ import {
   Region,
 } from "@prisma/client";
 
-// Function to calculate BMI
-const calculateBMI = (weight: number, height: number): number => {
-  const heightInMeters = height / 100; // Convert cm to meters
-  const bmi = weight / (heightInMeters * heightInMeters);
-  return Number(bmi.toFixed(2));
-};
-
-// Type for profile update data
+// Type definitions
 interface ProfileUpdateData {
+  name?: string;
+  email?: string;
+  image?: string;
   yearOfBirth?: number;
   height?: number;
   weight?: number;
@@ -31,11 +27,17 @@ interface ProfileUpdateData {
   region?: Region;
 }
 
-// GET route to fetch user profile
+// BMI calculation helper
+const calculateBMI = (weight: number, height: number): number => {
+  const heightInMeters = height / 100;
+  return Number((weight / (heightInMeters * heightInMeters)).toFixed(2));
+};
+
+// GET endpoint
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
@@ -73,18 +75,33 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// PUT route to update user profile
+// PUT endpoint
 export async function PUT(req: NextRequest) {
   try {
     const session = await auth();
-
-    if (!session) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const body: ProfileUpdateData = await req.json();
+    let body: ProfileUpdateData;
+    try {
+      body = await req.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid JSON payload" },
+        { status: 400 }
+      );
+    }
 
-    // Number validations
+    // Validate required fields
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "Missing or invalid request body" },
+        { status: 400 }
+      );
+    }
+
+    // Validate numeric fields
     if (
       body.yearOfBirth &&
       (body.yearOfBirth < 1900 || body.yearOfBirth > new Date().getFullYear())
@@ -95,16 +112,16 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    if (body.height && (body.height < 0 || body.height > 300)) {
+    if (body.height && (body.height < 80 || body.height > 300)) {
       return NextResponse.json(
-        { error: "Invalid height value" },
+        { error: "Height must be between 80cm and 300cm" },
         { status: 400 }
       );
     }
 
-    if (body.weight && (body.weight < 0 || body.weight > 500)) {
+    if (body.weight && (body.weight < 20 || body.weight > 500)) {
       return NextResponse.json(
-        { error: "Invalid weight value" },
+        { error: "Weight must be between 20kg and 500kg" },
         { status: 400 }
       );
     }
@@ -118,6 +135,7 @@ export async function PUT(req: NextRequest) {
         where: { email: session.user.email },
         select: { height: true, weight: true },
       });
+
       if (currentUser?.height && currentUser?.weight) {
         bmi = calculateBMI(
           body.weight || currentUser.weight,
@@ -134,6 +152,9 @@ export async function PUT(req: NextRequest) {
         ...(bmi && { bmi }),
       },
       select: {
+        name: true,
+        email: true,
+        image: true,
         yearOfBirth: true,
         height: true,
         weight: true,
