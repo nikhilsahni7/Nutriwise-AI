@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "@/app/globals.css"
+import "@/app/globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/Themes/ThemeProvider";
 import Provider from "@/components/Authentication/Provider";
@@ -15,15 +15,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning >
+    <html lang="en" suppressHydrationWarning>
       <body>
         <Provider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="light"
             enableSystem
             disableTransitionOnChange
-            >
+          >
             {children}
           </ThemeProvider>
         </Provider>
