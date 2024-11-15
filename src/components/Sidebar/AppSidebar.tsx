@@ -85,7 +85,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" variant="floating" className="border-r">
-      <SidebarHeader className="border-b bg-card">
+      <SidebarHeader className="border-b">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
@@ -135,7 +135,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t">
         {/* Profile Section */}
-        <div className="p-4">
+        <div className="px-2">
           <div className="flex items-center space-x-4 px-2 py-3 rounded-lg hover:bg-accent/50 transition-colors">
             {status === "loading" ? (
               <div className="h-10 w-10 rounded-full animate-pulse bg-muted" />
@@ -173,6 +173,7 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
+                  <span>Options</span>
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
