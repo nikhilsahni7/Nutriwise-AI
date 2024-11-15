@@ -54,8 +54,8 @@ const items = [
     icon: Inbox,
   },
   {
-    title: "Calendar",
-    url: "#",
+    title: "Tracker",
+    url: "/app/track",
     icon: Calendar,
   },
   {
@@ -64,8 +64,8 @@ const items = [
     icon: Search,
   },
   {
-    title: "Settings",
-    url: "#",
+    title: "Dashboard",
+    url: "/app/dashboard",
     icon: Settings,
   },
 ];
