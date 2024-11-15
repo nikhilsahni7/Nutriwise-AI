@@ -10,6 +10,7 @@ import {
   User2,
   ChevronUp,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { useSession } from "next-auth/react";
 
@@ -48,8 +49,8 @@ const items = [
     icon: Home,
   },
   {
-    title: "Inbox",
-    url: "#",
+    title: "Chat",
+    url: "/app/chat",
     icon: Inbox,
   },
   {
@@ -71,6 +72,7 @@ const items = [
 
 export function AppSidebar() {
   const { setTheme } = useTheme();
+  const router = useRouter();
 
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
@@ -181,7 +183,7 @@ export function AppSidebar() {
                 side="top"
                 className="w-[--radix-popper-anchor-width]"
               >
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/app/account")}>
                   <span>Account</span>
                 </DropdownMenuItem>
                 <SidebarMenu>

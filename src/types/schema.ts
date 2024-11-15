@@ -45,3 +45,15 @@ export interface UserProfile {
   foodsToAvoid?: string[];
   region?: Region;
 }
+// types/chat.ts
+export interface Message {
+  id: number;
+  content: string;
+  role: "user" | "assistant";
+  isLoading?: boolean;
+}
+
+export interface ChatResponse {
+  response: string;
+  error?: string;
+}

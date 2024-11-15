@@ -1,5 +1,5 @@
 import React from 'react'
-import MealTracker from '../../../components/Tracking/Tracker'
+import MealTracker from '@/components/Tracking/Tracker'
 
 const page = () => {
   return (
