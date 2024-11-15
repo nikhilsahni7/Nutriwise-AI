@@ -3,6 +3,10 @@ import GoogleProvider from "next-auth/providers/google";
 import { connect } from "@/app/dbConnect/dbConnect";
 import User from "@/app/models/userModel";
 
+interface ExtendedProfile extends Record<string, any> {
+  picture?: string;
+}
+
 const handler = NextAuth({
   providers: [
     GoogleProvider({
@@ -25,19 +29,32 @@ const handler = NextAuth({
       return session;
     },
 
-    async signIn({ profile }) {
+    async signIn({
+      user,
+      account,
+      profile,
+    }: {
+      user: any;
+      account: any;
+      profile?: ExtendedProfile;
+    }) {
       try {
         await connect();
 
-        //check if the user already exists
+        // Log the entire profile to debug
+        console.log("Profile:", profile);
+
+        // Check if the user already exists
         const userExists = await User.findOne({
           email: profile?.email,
         });
 
-        //if not, create a new user
+        // If not, create a new user
         if (!userExists) {
           await User.create({
             email: profile?.email,
+            image: profile?.picture,
+            name: profile?.name,
           });
         }
 
@@ -69,5 +86,5 @@ const handler = NextAuth({
   secret: process.env.JWT_SECRET,
 });
 
-//usually we import everything as either GET or POST, but next-auth is an exception
+// Usually we import everything as either GET or POST, but next-auth is an exception
 export { handler as GET, handler as POST };
