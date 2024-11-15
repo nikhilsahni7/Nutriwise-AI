@@ -10,7 +10,7 @@ const Setup = () => {
     const [setupPageNum, setSetupPageNum] = useState(0);
 
   return (
-    <div className='flex justify-center items-center h-screen'>
+    <div className='p-4 flex justify-center items-center min-h-screen'>
       {
         setupPageNum === 0 ? 
             <SetupPage1 setSetupPageNum={setSetupPageNum} />

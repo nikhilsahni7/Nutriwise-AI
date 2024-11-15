@@ -73,7 +73,7 @@ export default function SetupPage3({setSetupPageNum}) {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">Finish</Button>
+            <Button type="submit" className="w-full">Finish </Button>
           </form>
         </Form>
       </CardContent>

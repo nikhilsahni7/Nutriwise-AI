@@ -18,13 +18,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  age: z.number().min(13, {
-    message: "You must be at least 13 years old.",
-  }).max(120, {
-    message: "Please enter a valid age.",
+  yearOfBirth: z.number().min(1900, {
+    message: "Please Enter a valid year of birth.",
+  }).max(2024, {
+    message: "Please enter a valid year of birth.",
   }),
   region: z.string().min(2, {
     message: "Please select a region.",
@@ -42,22 +39,26 @@ const formSchema = z.object({
   gender: z.enum(["male", "female", "other"], {
     required_error: "Please select a gender.",
   }),
+  activityLevel: z.enum(["1", "2", "3", "4", "5"], {
+    required_error: "Please select a physical activity level.",
+  }),
 })
 
 export default function SetupPage1({setSetupPageNum}) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      age: undefined,
+      yearOfBirth: undefined,
       region: "",
       weight: undefined,
       height: undefined,
       gender: undefined,
+      activityLevel: undefined,
     },
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+
     console.log(values)
     // Here you would typically send the data to your backend
     // and then navigate to the next stage
@@ -66,20 +67,20 @@ export default function SetupPage1({setSetupPageNum}) {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>User Account Setup</CardTitle>
+        <CardTitle>Account Setup</CardTitle>
         <CardDescription>Let's get to know you better to personalize your nutrition plan.</CardDescription>
-      </CardHeader>
+      </CardHeader> 
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
-              name="age"
+              name="yearOfBirth"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Age</FormLabel>
+                  <FormLabel>Year of Birth</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="30" {...field} onChange={e => field.onChange(parseInt(e.target.value))} />
+                    <Input type="number" placeholder="2001" {...field} onChange={e => field.onChange(parseInt(e.target.value))} />
                   </FormControl>
                   <FormDescription>Your age helps us tailor recommendations.</FormDescription>
                   <FormMessage />
@@ -155,6 +156,31 @@ export default function SetupPage1({setSetupPageNum}) {
                       <SelectItem value="male">Male</SelectItem>
                       <SelectItem value="female">Female</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>This helps us provide more accurate nutritional guidance.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="activityLevel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Physical Activity Level</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your activity level" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Sedentary (little or no exercise)</SelectItem>
+                      <SelectItem value="2">Light (exercise 1-3 times/week)</SelectItem>
+                      <SelectItem value="3">Moderate (exercise 4-5 times/week)</SelectItem>
+                      <SelectItem value="4">Active (daily exercise/intense exercise 3-4 times/week)</SelectItem>
+                      <SelectItem value="5">Very Active (intense exercise 6-7 times/week)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>This helps us provide more accurate nutritional guidance.</FormDescription>

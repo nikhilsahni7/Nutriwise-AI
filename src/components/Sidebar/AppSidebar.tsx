@@ -31,6 +31,7 @@ import {
 import { useTheme } from "next-themes"
 
 import {signOut} from 'next-auth/react'
+import { useRouter } from "next/navigation";
 
 // Menu items.
 const items = [
@@ -64,6 +65,8 @@ const items = [
 export function AppSidebar() {
 
   const { setTheme } = useTheme()
+
+  const router = useRouter();
 
   return (
     <Sidebar collapsible="icon" variant="floating">
@@ -125,7 +128,7 @@ export function AppSidebar() {
                   side="top"
                   className="w-[--radix-popper-anchor-width]"
                 >
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/app/account')} >
                     <span>Account</span>
                   </DropdownMenuItem>
                   <SidebarMenu>
