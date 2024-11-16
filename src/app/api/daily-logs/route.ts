@@ -1,105 +1,63 @@
-// // src/app/api/daily-logs/route.ts
-// import { NextResponse } from "next/server";
-// import prisma from "@/lib/db";
-// import { auth } from "../../../../auth";
-// import { z } from "zod";
+// app/api/daily-logs/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "../../../../auth";
+import prisma from "@/lib/db";
 
-// const dailyLogSchema = z.object({
-//   date: z.string(),
-//   exerciseStartTime: z.string().nullable(),
-//   exerciseEndTime: z.string().nullable(),
-//   sleepStartTime: z.string().nullable(),
-//   sleepEndTime: z.string().nullable(),
-//   exerciseIntensity: z
-//     .enum(["MILD", "MODERATE", "INTENSE", "VERY_INTENSE"])
-//     .nullable(),
-// });
+export async function GET(request: NextRequest) {
+  try {
+    // 1. Auth check
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-// export async function POST(req: Request) {
-//   try {
-//     const session = await auth();
-//     if (!session?.user?.id) {
-//       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-//     }
+    // 2. Get date from query params
+    const searchParams = request.nextUrl.searchParams;
+    const dateParam = searchParams.get("date");
 
-//     const body = await req.json();
-//     const validated = dailyLogSchema.parse(body);
+    if (!dateParam) {
+      return NextResponse.json(
+        { error: "Date parameter is required" },
+        { status: 400 }
+      );
+    }
 
-//     // Check for existing log for the date
-//     const existingLog = await prisma.dailyLog.findFirst({
-//       where: {
-//         userId: session.user.id,
-//         date: new Date(validated.date),
-//       },
-//     });
+    const date = new Date(dateParam);
 
-//     if (existingLog) {
-//       const updated = await prisma.dailyLog.update({
-//         where: { id: existingLog.id },
-//         data: {
-//           exerciseStartTime: validated.exerciseStartTime
-//             ? new Date(validated.exerciseStartTime)
-//             : null,
-//           exerciseEndTime: validated.exerciseEndTime
-//             ? new Date(validated.exerciseEndTime)
-//             : null,
-//           sleepStartTime: validated.sleepStartTime
-//             ? new Date(validated.sleepStartTime)
-//             : null,
-//           sleepEndTime: validated.sleepEndTime
-//             ? new Date(validated.sleepEndTime)
-//             : null,
-//           exerciseIntensity: validated.exerciseIntensity,
-//         },
-//         include: {
-//           meals: {
-//             include: {
-//               nutrients: true,
-//               dish: true,
-//             },
-//           },
-//         },
-//       });
-//       return NextResponse.json(updated);
-//     }
+    // 3. Query daily log with meals
+    const dailyLog = await prisma.dailyLog.findUnique({
+      where: {
+        userId_date: {
+          userId: session.user.id,
+          date: date,
+        },
+      },
+      include: {
+        meals: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+      },
+    });
 
-//     const dailyLog = await prisma.dailyLog.create({
-//       data: {
-//         userId: session.user.id,
-//         date: new Date(validated.date),
-//         exerciseStartTime: validated.exerciseStartTime
-//           ? new Date(validated.exerciseStartTime)
-//           : null,
-//         exerciseEndTime: validated.exerciseEndTime
-//           ? new Date(validated.exerciseEndTime)
-//           : null,
-//         sleepStartTime: validated.sleepStartTime
-//           ? new Date(validated.sleepStartTime)
-//           : null,
-//         sleepEndTime: validated.sleepEndTime
-//           ? new Date(validated.sleepEndTime)
-//           : null,
-//         exerciseIntensity: validated.exerciseIntensity,
-//       },
-//       include: {
-//         meals: {
-//           include: {
-//             nutrients: true,
-//             dish: true,
-//           },
-//         },
-//       },
-//     });
+    if (!dailyLog) {
+      return NextResponse.json(
+        { error: "Daily log not found" },
+        { status: 404 }
+      );
+    }
 
-//     return NextResponse.json(dailyLog);
-//   } catch (error) {
-//     console.error(error);
-//     if (error instanceof z.ZodError) {
-//       return NextResponse.json({ error: error.errors }, { status: 400 });
-//     }
-//     return NextResponse.json(
-//       { error: "Internal Server Error" },
-//       { status: 500 }
-//     );
-//   }
-// }
+    // 4. Return formatted response
+    return NextResponse.json({
+      success: true,
+      data: dailyLog,
+    });
+  } catch (error) {
+    console.error("Error fetching daily log:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

@@ -4,10 +4,10 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'images.media-allrecipes.com',
-        port: '',
-        pathname: '/images/**',
+        protocol: "https",
+        hostname: "images.media-allrecipes.com",
+        // port: "",
+        // pathname: "/images/**",
       },
     ],
   },
