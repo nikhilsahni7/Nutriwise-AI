@@ -1,6 +1,7 @@
 // app/setup/page.tsx
 "use client";
 
+import {useRouter} from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -74,6 +75,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function SetupPage() {
+  const router = useRouter();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
@@ -109,6 +112,9 @@ export default function SetupPage() {
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
       });
+      setTimeout(() => {
+          router.push('/app')
+      }, 1000);
     } catch (error) {
       toast({
         title: "Error",

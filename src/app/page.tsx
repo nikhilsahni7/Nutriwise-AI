@@ -9,10 +9,13 @@ import Link from "next/link";
 import { TypeAnimation } from "react-type-animation";
 import { useInView } from "react-intersection-observer";
 import Footer from "@/components/footer";
+import { useRouter } from "next/navigation";
 
 gsap.registerPlugin(ScrollTrigger);
 
 function Home() {
+  const router = useRouter();
+
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, 50]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
@@ -142,14 +145,14 @@ function Home() {
             Embark on a culinary journey where every recipe tells a story and every dish is a masterpiece.
           </motion.p>
 
-          <Link href="/Services">
+          <Link href="/auth/signin">
             <motion.button
               className="group relative inline-flex items-center justify-center px-8 py-4 md:px-8 md:py-5 overflow-hidden font-semibold text-lg border-2 border-gray-300 rounded-full transition-all duration-300 hover:border-transparent hover:text-white transform hover:scale-105 bg-white hover:bg-black font-lato"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="relative text-black flex items-center transition-colors duration-300 group-hover:text-white">
-                Explore our services
+              <span  className="relative cursor-pointer text-black flex items-center transition-colors duration-300 group-hover:text-white">
+                Get Started
               </span>
               <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
             </motion.button>

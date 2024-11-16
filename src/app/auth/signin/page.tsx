@@ -30,7 +30,7 @@ function InnerSignIn() {
   const [error, setError] = useState("");
 
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || "/auth/setup";
   const router = useRouter();
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -56,8 +56,22 @@ function InnerSignIn() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl });
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const result = await signIn("google", { callbackUrl });
+      if (result?.error) {
+        setError("Invalid email or too many attempts");
+      } else {
+        router.push(`/auth/setup`);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
