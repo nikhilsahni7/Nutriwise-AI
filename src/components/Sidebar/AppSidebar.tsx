@@ -49,9 +49,19 @@ const items = [
     icon: Home,
   },
   {
-    title: "Chat",
+    title: "Recipe of the Day",
+    url: "/app/rotd",
+    icon: Home,
+  },
+  {
+    title: "NutriWise AI",
     url: "/app/chat",
     icon: Inbox,
+  },
+  {
+    title: "Recommendations",
+    url: "/app/recommend",
+    icon: Calendar,
   },
   {
     title: "Tracker",
