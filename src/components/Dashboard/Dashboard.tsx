@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
@@ -15,6 +15,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+
+import { useSession } from "next-auth/react";
 
 // Mock data
 const nutritionData = {
@@ -42,12 +44,53 @@ const nutritionData = {
 export default function Dashboard() {
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [selectedMicronutrient, setSelectedMicronutrient] = useState('vitaminC')
+  const [bmr, setBmr] = useState(0);
+  const { data: session } = useSession();
 
   const macroData = [
     { name: 'Carbohydrates', grams: nutritionData.macronutrients.carbohydrates },
     { name: 'Protein', grams: nutritionData.macronutrients.protein },
     { name: 'Fats', grams: nutritionData.macronutrients.fats },
   ]
+
+  const handleDateSelect = async (value: Date | undefined) => {
+    
+    console.log(value);
+    const date = value;
+
+    if (!session) {
+      console.error("User is not authenticated.");
+      return;
+    }
+
+    // Destructure year, month, day
+    const year = date?.getFullYear();
+    const month = String(date?.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+    const day = String(date?.getDate()).padStart(2, "0");
+
+    const formattedDate = `${year}-${month}-${day}`;
+
+    try {
+      const response = await fetch(`/api/daily-logs?date=${formattedDate}`);
+
+      if (!response.ok) {
+        console.log(response.status)
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // setLogs(data.logs); // Update state with fetched logs
+      console.log(data);
+    } catch (error) {
+      console.error("Failed to fetch daily logs:", error);
+    }
+
+
+  }
+
+  useEffect(() => {
+    
+  }, [])
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -77,7 +120,7 @@ export default function Dashboard() {
             <Calendar
               mode="single"
               selected={date}
-              onSelect={setDate}
+              onSelect={(value) => handleDateSelect(value)}
               initialFocus
             />
           </PopoverContent>

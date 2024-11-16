@@ -9,6 +9,11 @@ import {
   ChevronDown,
   User2,
   ChevronUp,
+  CookingPot,
+  Sparkle, 
+  Apple,
+  Smile,
+  LayoutDashboard
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -51,17 +56,17 @@ const items = [
   {
     title: "Recipe of the Day",
     url: "/app/rotd",
-    icon: Home,
+    icon: CookingPot,
   },
   {
     title: "NutriWise AI",
     url: "/app/chat",
-    icon: Inbox,
+    icon: Sparkle,
   },
   {
     title: "Recommendations",
     url: "/app/recommend",
-    icon: Calendar,
+    icon: Apple,
   },
   {
     title: "Tracker",
@@ -69,14 +74,14 @@ const items = [
     icon: Calendar,
   },
   {
-    title: "Search",
-    url: "#",
-    icon: Search,
+    title: "Community",
+    url: "/app/community",
+    icon: Smile,
   },
   {
     title: "Dashboard",
     url: "/app/dashboard",
-    icon: Settings,
+    icon: LayoutDashboard,
   },
 ];
 
@@ -104,17 +109,17 @@ export function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="hover:bg-accent transition-colors">
                   <span className="font-semibold">Nutriwise</span>
-                  <ChevronDown className="ml-auto h-4 w-4" />
+                  {/* <ChevronDown className="ml-auto h-4 w-4" /> */}
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
+              {/* <DropdownMenuContent className="w-56">
                 <DropdownMenuItem className="cursor-pointer">
                   <span>Acme Inc</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
                   <span>Acme Corp.</span>
                 </DropdownMenuItem>
-              </DropdownMenuContent>
+              </DropdownMenuContent> */}
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>

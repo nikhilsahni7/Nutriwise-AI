@@ -96,6 +96,7 @@ export default function SetupPage() {
   });
 
   async function onSubmit(values: FormValues) {
+    console.log(values);
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/onboarding", {
