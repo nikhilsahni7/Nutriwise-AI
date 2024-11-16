@@ -95,6 +95,8 @@ model User {
   foodAllergies        String[]  @map("food_allergies")
   foodsToAvoid         String[]  @map("foods_to_avoid")
   region               Region?
+  meals               Meal[]
+  dailyLogs           DailyLog[]
   
   @@map("users")
 }
@@ -110,4 +112,60 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verificationtokens")
+}
+
+
+model DailyLog {
+  id                String    @id @default(cuid())
+  userId            String
+  date              DateTime
+  // Aggregated daily totals
+  totalCalories     Float     @default(0)
+  totalProtein      Float     @default(0)
+  totalCarbs        Float     @default(0)
+  totalFats         Float     @default(0)
+  totalFiber        Float     @default(0)
+  totalIron         Float     @default(0)
+  totalCalcium      Float     @default(0)
+  totalPotassium    Float     @default(0)
+  totalVitaminA     Float     @default(0)
+  totalVitaminC     Float     @default(0)
+  meals             Meal[]
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("daily_logs")
+}
+
+model Meal {
+  id          String    @id @default(cuid())
+  userId      String
+  dailyLogId  String
+  mealType    MealType
+  imageUrl    String
+  name        String?
+  portions    Float     @default(1)
+  // Per-meal nutrients
+  calories    Float     @default(0)
+  protein     Float     @default(0)
+  carbs       Float     @default(0)
+  fats        Float     @default(0)
+  fiber       Float     @default(0)
+  iron        Float     @default(0)
+  calcium     Float     @default(0)
+  potassium   Float     @default(0)
+  vitaminA    Float     @default(0)
+  vitaminC    Float     @default(0)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyLog    DailyLog  @relation(fields: [dailyLogId], references: [id])
+  createdAt   DateTime  @default(now())
+
+  @@map("meals")
+}
+
+enum MealType {
+  breakfast
+  lunch
+  dinner
+  snack
 }
