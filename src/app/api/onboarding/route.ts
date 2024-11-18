@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ user }, { status: 200 });
+    return NextResponse.json(user);
   } catch (error) {
     console.error("Profile GET Error:", error);
     return NextResponse.json(
