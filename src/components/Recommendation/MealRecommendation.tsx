@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -21,177 +20,177 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-// Mock data for recipes
-const recipes = [
-  {
-    id: 1,
-    name: "Grilled Chicken Salad",
-    description: "A healthy and delicious salad with grilled chicken",
-    calories: 350,
-    protein: 30,
-    carbs: 15,
-    fat: 12,
-    image: "/placeholder.svg?height=200&width=300",
-    ingredients: [
-      "Chicken breast",
-      "Mixed greens",
-      "Cherry tomatoes",
-      "Cucumber",
-      "Balsamic vinaigrette",
-    ],
-    instructions: [
-      "Grill the chicken breast",
-      "Chop the vegetables",
-      "Mix all ingredients in a bowl",
-      "Drizzle with balsamic vinaigrette",
-    ],
-  },
-  {
-    id: 2,
-    name: "Vegetarian Stir Fry",
-    description: "A quick and easy vegetable stir fry",
-    calories: 300,
-    protein: 15,
-    carbs: 40,
-    fat: 10,
-    image: "/placeholder.svg?height=200&width=300",
-    ingredients: [
-      "Mixed vegetables",
-      "Tofu",
-      "Soy sauce",
-      "Sesame oil",
-      "Rice",
-    ],
-    instructions: [
-      "Cut tofu and vegetables",
-      "Heat oil in a wok",
-      "Stir fry tofu and vegetables",
-      "Add soy sauce and serve with rice",
-    ],
-  },
-  {
-    id: 3,
-    name: "Salmon with Roasted Vegetables",
-    description: "Oven-baked salmon with a medley of roasted vegetables",
-    calories: 400,
-    protein: 35,
-    carbs: 20,
-    fat: 18,
-    image: "/placeholder.svg?height=200&width=300",
-    ingredients: [
-      "Salmon fillet",
-      "Broccoli",
-      "Carrots",
-      "Bell peppers",
-      "Olive oil",
-    ],
-    instructions: [
-      "Preheat oven to 400°F",
-      "Season salmon and vegetables",
-      "Roast vegetables for 20 minutes",
-      "Add salmon and roast for 12-15 minutes",
-    ],
-  },
-  {
-    id: 4,
-    name: "Quinoa Bowl with Avocado",
-    description: "A nutritious quinoa bowl topped with fresh avocado",
-    calories: 380,
-    protein: 12,
-    carbs: 50,
-    fat: 16,
-    image: "/placeholder.svg?height=200&width=300",
-    ingredients: ["Quinoa", "Avocado", "Black beans", "Corn", "Lime juice"],
-    instructions: [
-      "Cook quinoa according to package instructions",
-      "Prepare black beans and corn",
-      "Slice avocado",
-      "Assemble bowl and drizzle with lime juice",
-    ],
-  },
-];
+interface Recipe {
+  Recipe_id: string;
+  Recipe_title: string;
+  Region: string;
+  Sub_region: string;
+  Calories: number;
+  "Protein (g)": number;
+  "Carbohydrate, by difference (g)": number;
+  "Total lipid (fat) (g)": number;
+  img_url: string | null;
+  url: string;
+  total_time: number;
+}
 
-const moods = ["Happy", "Energetic", "Relaxed", "Stressed", "Tired"];
-const seasons = ["Spring", "Summer", "Autumn", "Winter"];
-const regions = [
-  "Mediterranean",
-  "Asian",
-  "Latin American",
-  "European",
-  "Middle Eastern",
-];
+interface RecipeCardProps {
+  recipe: Recipe;
+}
 
-export default function MealRecommendations() {
-  const [selectedMood, setSelectedMood] = useState("");
-  const [selectedSeason, setSelectedSeason] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedRecipe, setSelectedRecipe] = useState<{
-    id: number;
-    name: string;
-    description: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    image: string;
-    ingredients: string[];
-    instructions: string[];
-  } | null>(null);
+interface TagSelectorProps {
+  tags: string[];
+  selectedTag: string;
+  setSelectedTag: (tag: string) => void;
+  onSelect?: (tag: string) => void;
+}
 
-  const RecipeCard = ({ recipe }: { recipe: any }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <Card className="h-full flex flex-col justify-between">
-        <CardHeader className="p-0">
-          <img
-            src={recipe.image}
-            alt={recipe.name}
-            className="w-full h-40 object-cover rounded-t-lg"
-          />
-        </CardHeader>
-        <CardContent className="p-4">
-          <CardTitle className="text-lg">{recipe.name}</CardTitle>
-          <CardDescription className="text-sm mt-1">
-            {recipe.description}
-          </CardDescription>
-          <div className="grid grid-cols-2 gap-1 mt-2 text-xs">
-            <div>Calories: {recipe.calories}</div>
-            <div>Protein: {recipe.protein}g</div>
-            <div>Carbs: {recipe.carbs}g</div>
-            <div>Fat: {recipe.fat}g</div>
-          </div>
-        </CardContent>
-        <CardFooter className="p-4 pt-0 ">
-          <Button
-            className="w-full text-sm"
-            onClick={() => setSelectedRecipe(recipe)}
-          >
-            View Recipe
-          </Button>
-        </CardFooter>
-      </Card>
-    </motion.div>
+interface ApiResponse {
+  success: string;
+  payload?: {
+    data: Recipe[];
+  };
+}
+
+type MoodType = "Happy" | "Energetic" | "Relaxed" | "Stressed" | "Tired";
+type SeasonType = "Spring" | "Summer" | "Autumn" | "Winter";
+type RegionType =
+  | "Indian"
+  | "Mediterranean"
+  | "Chinese"
+  | "Mexican"
+  | "Italian";
+
+const MealRecommendations: React.FC = () => {
+  const [selectedMood, setSelectedMood] = useState<string>("");
+  const [selectedSeason, setSelectedSeason] = useState<string>("");
+  const [selectedRegion, setSelectedRegion] = useState<string>("");
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const moods: MoodType[] = [
+    "Happy",
+    "Energetic",
+    "Relaxed",
+    "Stressed",
+    "Tired",
+  ];
+  const seasons: SeasonType[] = ["Spring", "Summer", "Autumn", "Winter"];
+  const regions: RegionType[] = [
+    "Indian",
+    "Mediterranean",
+    "Chinese",
+    "Mexican",
+    "Italian",
+  ];
+
+  const seasonalIngredients: Record<SeasonType, string[]> = {
+    Spring: ["Asparagus", "Peas", "Strawberries", "Spinach"],
+    Summer: ["Tomatoes", "Corn", "Watermelon", "Zucchini"],
+    Autumn: ["Pumpkin", "Sweet Potato", "Apple", "Brussels Sprouts"],
+    Winter: ["Citrus", "Root Vegetables", "Kale", "Winter Squash"],
+  };
+
+  const moodFoods: Record<MoodType, string[]> = {
+    Happy: ["Chocolate", "Berries", "Fish", "Nuts"],
+    Energetic: ["Quinoa", "Green Tea", "Banana", "Oats"],
+    Relaxed: ["Turkey", "Chamomile", "Warm Milk", "Cherries"],
+    Stressed: ["Dark Chocolate", "Avocado", "Green Leafy Vegetables", "Yogurt"],
+    Tired: ["Coffee", "Green Tea", "Chia Seeds", "Dates"],
+  };
+
+  const fetchRecipes = async (searchText: string): Promise<void> => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `https://cosylab.iiitd.edu.in/recipe-search/recipe?pageSize=10&searchText=${searchText}`
+      );
+      const data: ApiResponse = await response.json();
+      if (data.success === "true" && data.payload?.data) {
+        setRecipes(data.payload.data);
+      }
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecipes("Indian"); // Initial load with Indian cuisine
+  }, []);
+
+  const filterRecipesBySeason = (season: string): Recipe[] => {
+    if (!season) return recipes;
+    const seasonalItems = seasonalIngredients[season as SeasonType] || [];
+    return recipes.filter((recipe) =>
+      seasonalItems.some((ingredient) =>
+        recipe.Recipe_title.toLowerCase().includes(ingredient.toLowerCase())
+      )
+    );
+  };
+
+  const filterRecipesByMood = (mood: string): Recipe[] => {
+    if (!mood) return recipes;
+    const moodItems = moodFoods[mood as MoodType] || [];
+    return recipes.filter((recipe) =>
+      moodItems.some((ingredient) =>
+        recipe.Recipe_title.toLowerCase().includes(ingredient.toLowerCase())
+      )
+    );
+  };
+
+  const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => (
+    <Card className="h-full flex flex-col justify-between">
+      <CardHeader className="p-0">
+        <img
+          src={recipe.img_url || "/api/placeholder/400/300"}
+          alt={recipe.Recipe_title.replace(/<[^>]+>/g, "")}
+          className="w-full h-40 object-cover rounded-t-lg"
+        />
+      </CardHeader>
+      <CardContent className="p-4">
+        <CardTitle className="text-lg">
+          {recipe.Recipe_title.replace(/<[^>]+>/g, "")}
+        </CardTitle>
+        <CardDescription className="text-sm mt-1">
+          {recipe.Region} • {recipe.Sub_region}
+        </CardDescription>
+        <div className="grid grid-cols-2 gap-1 mt-2 text-xs">
+          <div>Calories: {recipe.Calories}</div>
+          <div>Protein: {recipe["Protein (g)"]}g</div>
+          <div>Carbs: {recipe["Carbohydrate, by difference (g)"]}g</div>
+          <div>Fat: {recipe["Total lipid (fat) (g)"]}g</div>
+        </div>
+      </CardContent>
+      <CardFooter className="p-4 pt-0">
+        <Button
+          className="w-full text-sm"
+          onClick={() => setSelectedRecipe(recipe)}
+        >
+          View Recipe
+        </Button>
+      </CardFooter>
+    </Card>
   );
 
-  const TagSelector = ({
+  const TagSelector: React.FC<TagSelectorProps> = ({
     tags,
     selectedTag,
     setSelectedTag,
-  }: {
-    tags: any;
-    selectedTag: any;
-    setSelectedTag: any;
+    onSelect,
   }) => (
     <div className="flex flex-wrap gap-2 mb-4">
-      {tags.map((tag: any) => (
+      {tags.map((tag) => (
         <Badge
           key={tag}
           variant={selectedTag === tag ? "default" : "secondary"}
           className="cursor-pointer"
-          onClick={() => setSelectedTag(tag)}
+          onClick={() => {
+            setSelectedTag(tag);
+            if (onSelect) onSelect(tag);
+          }}
         >
           {tag}
         </Badge>
@@ -202,84 +201,96 @@ export default function MealRecommendations() {
   return (
     <div className="container w-full h-full mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6 text-center">
-        Meal Recommendations
+        Recipe Recommendations
       </h1>
-      <Tabs defaultValue="nutrition" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="nutrition">Nutrition Goals</TabsTrigger>
-          <TabsTrigger value="moods">Moods</TabsTrigger>
-          <TabsTrigger value="seasons">Seasons</TabsTrigger>
-          <TabsTrigger value="regions">Regions</TabsTrigger>
-        </TabsList>
-        <TabsContent value="nutrition">
-          <h2 className="text-2xl font-semibold mb-4">Recommended Recipes</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {recipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
-            ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="moods">
-          <h2 className="text-2xl font-semibold mb-4">Select Your Mood</h2>
-          <TagSelector
-            tags={moods}
-            selectedTag={selectedMood}
-            setSelectedTag={setSelectedMood}
-          />
-          {selectedMood && (
-            <>
-              <h3 className="text-xl font-semibold mb-4">
-                Recipes for {selectedMood} Mood
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {recipes.slice(0, 3).map((recipe) => (
-                  <RecipeCard key={recipe.id} recipe={recipe} />
+
+      {loading ? (
+        <div className="flex items-center justify-center h-96">
+          <p className="text-lg font-semibold">Loading...</p>
+        </div>
+      ) : (
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="all">All Recipes</TabsTrigger>
+            <TabsTrigger value="moods">Moods</TabsTrigger>
+            <TabsTrigger value="seasons">Seasons</TabsTrigger>
+            <TabsTrigger value="regions">Regions</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {recipes.map((recipe) => (
+                <RecipeCard key={recipe.Recipe_id} recipe={recipe} />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="moods">
+            <h2 className="text-2xl font-semibold mb-4">Select Your Mood</h2>
+            <TagSelector
+              tags={moods}
+              selectedTag={selectedMood}
+              setSelectedTag={setSelectedMood}
+            />
+            {selectedMood && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filterRecipesByMood(selectedMood).map((recipe) => (
+                  <RecipeCard key={recipe.Recipe_id} recipe={recipe} />
                 ))}
               </div>
-            </>
-          )}
-        </TabsContent>
-        <TabsContent value="seasons">
-          <h2 className="text-2xl font-semibold mb-4">Select a Season</h2>
-          <TagSelector
-            tags={seasons}
-            selectedTag={selectedSeason}
-            setSelectedTag={setSelectedSeason}
-          />
-          {selectedSeason && (
-            <>
-              <h3 className="text-xl font-semibold mb-4">
-                {selectedSeason} Recipes
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {recipes.slice(1, 4).map((recipe) => (
-                  <RecipeCard key={recipe.id} recipe={recipe} />
+            )}
+          </TabsContent>
+
+          <TabsContent value="seasons">
+            <h2 className="text-2xl font-semibold mb-4">Select Season</h2>
+            <TagSelector
+              tags={seasons}
+              selectedTag={selectedSeason}
+              setSelectedTag={setSelectedSeason}
+            />
+            {selectedSeason && (
+              <>
+                <div className="mt-4 mb-6">
+                  <h4 className="text-lg font-medium mb-2">
+                    Featured Seasonal Ingredients:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {seasonalIngredients[selectedSeason as SeasonType].map(
+                      (ingredient) => (
+                        <Badge key={ingredient} variant="outline">
+                          {ingredient}
+                        </Badge>
+                      )
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filterRecipesBySeason(selectedSeason).map((recipe) => (
+                    <RecipeCard key={recipe.Recipe_id} recipe={recipe} />
+                  ))}
+                </div>
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="regions">
+            <h2 className="text-2xl font-semibold mb-4">Select Region</h2>
+            <TagSelector
+              tags={regions}
+              selectedTag={selectedRegion}
+              setSelectedTag={setSelectedRegion}
+              onSelect={(region) => fetchRecipes(region)}
+            />
+            {selectedRegion && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {recipes.map((recipe) => (
+                  <RecipeCard key={recipe.Recipe_id} recipe={recipe} />
                 ))}
               </div>
-            </>
-          )}
-        </TabsContent>
-        <TabsContent value="regions">
-          <h2 className="text-2xl font-semibold mb-4">Select a Region</h2>
-          <TagSelector
-            tags={regions}
-            selectedTag={selectedRegion}
-            setSelectedTag={setSelectedRegion}
-          />
-          {selectedRegion && (
-            <>
-              <h3 className="text-xl font-semibold mb-4">
-                {selectedRegion} Cuisine
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {recipes.slice(2).map((recipe) => (
-                  <RecipeCard key={recipe.id} recipe={recipe} />
-                ))}
-              </div>
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
 
       <Dialog
         open={!!selectedRecipe}
@@ -287,34 +298,48 @@ export default function MealRecommendations() {
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{selectedRecipe?.name}</DialogTitle>
-            <DialogDescription>{selectedRecipe?.description}</DialogDescription>
+            <DialogTitle>
+              {selectedRecipe?.Recipe_title.replace(/<[^>]+>/g, "")}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedRecipe?.Region} • {selectedRecipe?.Sub_region}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <img
-              src={selectedRecipe?.image}
-              alt={selectedRecipe?.name}
+              src={selectedRecipe?.img_url || "/api/placeholder/400/300"}
+              alt={selectedRecipe?.Recipe_title}
               className="w-full h-48 object-cover rounded-lg"
             />
             <div>
-              <h4 className="font-semibold mb-2">Ingredients:</h4>
+              <h4 className="font-semibold mb-2">Nutritional Information:</h4>
               <ul className="list-disc list-inside">
-                {selectedRecipe?.ingredients.map((ingredient, index) => (
-                  <li key={index}>{ingredient}</li>
-                ))}
+                <li>Calories: {selectedRecipe?.Calories}</li>
+                <li>Protein: {selectedRecipe?.["Protein (g)"]}g</li>
+                <li>
+                  Carbohydrates:{" "}
+                  {selectedRecipe?.["Carbohydrate, by difference (g)"]}g
+                </li>
+                <li>Fat: {selectedRecipe?.["Total lipid (fat) (g)"]}g</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-2">Instructions:</h4>
-              <ol className="list-decimal list-inside">
-                {selectedRecipe?.instructions.map((instruction, index) => (
-                  <li key={index}>{instruction}</li>
-                ))}
-              </ol>
+              <h4 className="font-semibold mb-2">Cooking Time:</h4>
+              <p>Total Time: {selectedRecipe?.total_time} minutes</p>
             </div>
+            <Button
+              className="mt-4"
+              onClick={() =>
+                selectedRecipe?.url && window.open(selectedRecipe.url, "_blank")
+              }
+            >
+              View Full Recipe
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
     </div>
   );
-}
+};
+
+export default MealRecommendations;

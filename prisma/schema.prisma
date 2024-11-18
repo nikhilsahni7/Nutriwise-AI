@@ -97,6 +97,8 @@ model User {
   region               Region?
   meals               Meal[]
   dailyLogs           DailyLog[]
+  communities          Community[]
+  savedRecipes         SavedRecipe[]
   
   @@map("users")
 }
@@ -168,4 +170,37 @@ enum MealType {
   lunch
   dinner
   snack
+}
+
+
+model Community {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  description String
+  tags        String[]  @default([])
+  ingredients String[]  @default([])
+  userEmail  String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+
+  
+}
+
+model SavedRecipe {
+  id          String    @id @default(cuid())
+  userId      String
+  recipeId    String    // Spoonacular recipe ID
+  name        String
+  image       String?
+  calories    Float
+  protein     Float
+  carbs       Float
+  fats        Float
+  savedAt     DateTime  @default(now())
+  rating      Int?      // User rating 1-5
+  cooked      Boolean   @default(false)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("saved_recipes")
 }

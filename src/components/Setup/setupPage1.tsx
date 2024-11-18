@@ -1,12 +1,13 @@
 // app/setup/page.tsx
 "use client";
 
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 import {
   Form,
   FormControl,
@@ -78,6 +79,7 @@ export default function SetupPage() {
   const router = useRouter();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -94,6 +96,45 @@ export default function SetupPage() {
       foodsToAvoid: [],
     },
   });
+  useEffect(() => {
+    async function fetchUserDetails() {
+      try {
+        const response = await fetch("/api/onboarding");
+        const data = await response.json();
+        if (response.ok) {
+          form.reset({
+            yearOfBirth: data.yearOfBirth,
+
+            height: data.height,
+            weight: data.weight,
+            gender: data.gender || "other",
+            physicalActivityLevel: data.physicalActivityLevel,
+            goals: data.goals,
+            dietPreference: data.dietPreference,
+            region: data.region,
+            foodAllergies: data.foodAllergies || [],
+            foodsToAvoid: data.foodsToAvoid || [],
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: data.error || "Failed to fetch user details.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch user details.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchUserDetails();
+  }, [form]);
 
   async function onSubmit(values: FormValues) {
     console.log(values);
@@ -107,6 +148,7 @@ export default function SetupPage() {
 
       if (!response.ok) {
         throw new Error("Failed to update profile");
+        router.push("/main/account");
       }
 
       toast({
@@ -114,7 +156,7 @@ export default function SetupPage() {
         description: "Your profile has been successfully updated.",
       });
       setTimeout(() => {
-          router.push('/app')
+        router.push("/main");
       }, 1000);
     } catch (error) {
       toast({
@@ -125,6 +167,10 @@ export default function SetupPage() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
   return (

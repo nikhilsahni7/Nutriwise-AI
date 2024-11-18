@@ -1,5 +1,3 @@
-"use client";
-
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +40,9 @@ export default async function RecipeOfTheDay() {
   } catch (error) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-red-500">Failed to load recipe</p>
+        <div className="text-center">
+          Recipe DB API is down. Please try again later 😢
+        </div>
       </div>
     );
   }
@@ -64,8 +64,8 @@ export default async function RecipeOfTheDay() {
   const processes = data.Processes?.split("||") || [];
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-4xl bg-white dark:bg-gray-800 shadow-xl">
+    <div className="container mx-auto p-4 space-y-6">
+      <Card className="w-full bg-white dark:bg-gray-800 shadow-xl">
         <CardHeader className="relative p-0">
           <Image
             src={data.img_url || "/placeholder.svg"}

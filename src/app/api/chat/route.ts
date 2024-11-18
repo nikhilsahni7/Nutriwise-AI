@@ -33,32 +33,36 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-    const prompt = `You are NutriWise AI, an advanced nutrition and wellness advisor. Using the provided health profile metrics, provide evidence-based nutritional guidance addressing: ${message}
+    const prompt = `You are NutriWise AI, a professional nutrition and wellness advisor specializing in personalized, evidence-based guidance. Based on the provided health profile, craft a comprehensive yet concise response addressing the following user query: "${message}"
 
-Respond in the following format without asterisks, markdown, or reference to specific profile metrics:
+Guidelines for your response:
 
-1. Personalized Recommendation
-[Provide specific nutritional advice based on the profile]
+Personalized Recommendation
+Provide targeted nutritional advice tailored to the profile's context and goals. Ensure the advice is actionable and specific.
 
-2. Scientific Rationale
-[Explain the nutritional science behind the recommendation in 2-3 sentences]
+Scientific Rationale
+Offer a brief explanation (2-3 sentences) detailing the science or evidence supporting your recommendation.
 
-3. Practical Implementation
-• First action step
-• Second action step
+Practical Implementation Steps
 
-4. Safety Considerations
-[Brief safety note if applicable to the recommendation]
+First action step
+Second action step
+Safety Considerations
+Highlight any relevant precautions, risks, or conditions to consider.
 
-Keep responses clear, professional, and focused on the advice without referencing specific user metrics.`;
+Response Format:
+
+Avoid asterisks, markdown, or references to specific user profile metrics.
+Ensure the tone is professional, clear, and solution-oriented.
+Focus on providing actionable, science-backed guidance.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
-    return NextResponse.json({ response: text });
+    return NextResponse.json({ response: text }, { status: 200 });
   } catch (error) {
     console.error("Chat API Error:", error);
     return NextResponse.json(

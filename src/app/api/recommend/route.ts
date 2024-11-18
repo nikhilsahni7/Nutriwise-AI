@@ -1,94 +1,77 @@
-// app/api/recommendations/route.ts
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import prisma from "@/lib/db";
-import { auth } from "../../../../auth";
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-async function fetchRecipes(searchText: string) {
-  const response = await fetch(
-    `https://cosylab.iiitd.edu.in/recipe-search/recipe?pageSize=10&searchText=${searchText}`
-  );
-  const data = await response.json();
-  return data.payload.data;
-}
-
-async function generateMealSuggestions(userProfile: any) {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-  const prompt = `
-    Generate meal suggestions for a user with the following profile:
-    - Goals: ${userProfile.goals}
-    - Diet Preference: ${userProfile.dietPreference}
-    - Food Allergies: ${userProfile.foodAllergies.join(", ")}
-    - Foods to Avoid: ${userProfile.foodsToAvoid.join(", ")}
-    - Physical Activity Level: ${userProfile.physicalActivityLevel}
-    - Region: ${userProfile.region}
-    
-    Suggest 5 specific dishes that would be suitable for this user, considering their dietary restrictions and nutritional needs.
-    Return the response as a JSON array of dish names only.
-  `;
-
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const suggestions = JSON.parse(response.text());
-
-  return suggestions;
-}
-
-export async function GET() {
+export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+    const { userPreferences } = await req.json();
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        goals: true,
-        dietPreference: true,
-        foodAllergies: true,
-        foodsToAvoid: true,
-        physicalActivityLevel: true,
-        region: true,
-      },
-    });
+    // First fetch some initial recipes to ensure we have data to work with
+    const response = await fetch(
+      `https://cosylab.iiitd.edu.in/recipe-search/recipe?pageSize=20&searchText=indian`
+    );
+    const initialData = await response.json();
 
-    if (!user) {
-      return new Response("User not found", { status: 404 });
-    }
-
-    // Get AI-generated meal suggestions based on user profile
-    const suggestions = await generateMealSuggestions(user);
-
-    // Fetch detailed recipes for each suggestion
-    const allRecipes = await Promise.all(
-      suggestions.map((dish: string) => fetchRecipes(dish))
+    // Use actual recipes from the API to generate recommendations
+    const availableRecipes = initialData.payload.data.map(
+      (recipe: any) => recipe.Recipe_title
     );
 
-    // Flatten and filter recipes
-    const recipes = allRecipes
-      .flat()
-      .filter((recipe: any) => {
-        // Filter out recipes that contain allergens or foods to avoid
-        const recipeText = JSON.stringify(recipe).toLowerCase();
-        return (
-          !user.foodAllergies.some((allergen) =>
-            recipeText.includes(allergen.toLowerCase())
-          ) &&
-          !user.foodsToAvoid.some((food) =>
-            recipeText.includes(food.toLowerCase())
-          )
-        );
-      })
-      .slice(0, 10); // Limit to top 10 recipes
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const prompt = `Given the following user preferences and this list of available recipes: ${availableRecipes.join(
+      ", "
+    )}, 
+    suggest 5 recipes that match their requirements. Only suggest recipes from the provided list.
+    
+    User Preferences:
+    - Goals: ${userPreferences.goals}
+    - Diet Preferences: ${userPreferences.dietPreference}
+    - Allergies: ${userPreferences.foodAllergies.join(", ")}
+    - Foods to Avoid: ${userPreferences.foodsToAvoid.join(", ")}
+    - Physical Activity Level: ${userPreferences.physicalActivityLevel}
+    - Region: ${userPreferences.region}`;
 
-    return new Response(JSON.stringify({ recipes }), {
-      headers: { "Content-Type": "application/json" },
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    // Return both the AI suggestions and the initial recipe data
+    return Response.json({
+      suggestions: text.split("\n").filter((t) => t.trim().length > 0),
+      recipes: initialData.payload.data,
     });
   } catch (error) {
-    console.error("Error in recommendations:", error);
-    return new Response("Internal Server Error", { status: 500 });
+    console.error("Error in recommendation API:", error);
+    return Response.json(
+      { error: "Failed to generate recommendations" },
+      { status: 500 }
+    );
+  }
+}
+
+// src/app/api/recipes/route.ts
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const searchText = searchParams.get("searchText") || "indian";
+
+  try {
+    const response = await fetch(
+      `https://cosylab.iiitd.edu.in/recipe-search/recipe?pageSize=20&searchText=${searchText}`
+    );
+    const data = await response.json();
+
+    if (!data.success || !data.payload?.data) {
+      throw new Error("Invalid API response format");
+    }
+
+    return Response.json(data);
+  } catch (error) {
+    console.error("Error fetching recipes:", error);
+    return Response.json(
+      {
+        success: false,
+        message: "Failed to fetch recipes",
+        payload: { data: [], totalCount: 0 },
+      },
+      { status: 200 } // Return 200 with empty data instead of 500
+    );
   }
 }

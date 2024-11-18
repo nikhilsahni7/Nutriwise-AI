@@ -33,6 +33,7 @@ const calculateBMI = (weight: number, height: number): number => {
   return Number((weight / (heightInMeters * heightInMeters)).toFixed(2));
 };
 
+export const dynamic = "force-dynamic";
 // GET endpoint
 export async function GET(req: NextRequest) {
   try {
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json({ user }, { status: 200 });
   } catch (error) {
     console.error("Profile GET Error:", error);
     return NextResponse.json(

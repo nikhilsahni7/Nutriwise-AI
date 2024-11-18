@@ -195,7 +195,7 @@ export default function UserAccount() {
                     src={form.getValues("image") || "/placeholder-avatar.jpg"}
                     alt="Profile picture"
                   />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarFallback>NS</AvatarFallback>
                 </Avatar>
               </div>
 

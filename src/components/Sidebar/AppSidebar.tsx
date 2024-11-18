@@ -10,10 +10,10 @@ import {
   User2,
   ChevronUp,
   CookingPot,
-  Sparkle, 
+  Sparkle,
   Apple,
   Smile,
-  LayoutDashboard
+  LayoutDashboard,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -50,37 +50,42 @@ import { useEffect, useState } from "react";
 const items = [
   {
     title: "Home",
-    url: "#",
+    url: "/main/welcome",
     icon: Home,
   },
   {
     title: "Recipe of the Day",
-    url: "/app/rotd",
+    url: "/main/rotd",
     icon: CookingPot,
   },
   {
     title: "NutriWise AI",
-    url: "/app/chat",
+    url: "/main/chat",
     icon: Sparkle,
   },
   {
     title: "Recommendations",
-    url: "/app/recommend",
+    url: "/main/recommend",
     icon: Apple,
   },
   {
     title: "Tracker",
-    url: "/app/track",
+    url: "/main/track",
     icon: Calendar,
   },
   {
     title: "Community",
-    url: "/app/community",
+    url: "/main/community",
     icon: Smile,
   },
   {
+    title: "Recipes",
+    url: "/main/recipes",
+    icon: Search,
+  },
+  {
     title: "Dashboard",
-    url: "/app/dashboard",
+    url: "/main/dashboard",
     icon: LayoutDashboard,
   },
 ];
@@ -90,15 +95,6 @@ export function AppSidebar() {
   const router = useRouter();
 
   const { data: session } = useSession();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <Sidebar collapsible="icon" variant="floating" className="border-r">
@@ -156,9 +152,9 @@ export function AppSidebar() {
           <div className="flex items-center space-x-4 px-2 py-3 rounded-lg hover:bg-accent/50 transition-colors">
             {status === "loading" ? (
               <div className="h-10 w-10 rounded-full animate-pulse bg-muted" />
-            ) : session?.user?.image ? (
+            ) : session?.user.image ? (
               <img
-                src={session.user.image}
+                src={session?.user?.image}
                 alt={session.user.name || "Profile"}
                 className="h-10 w-10 rounded-full ring-2 ring-border shadow-sm"
               />
@@ -198,7 +194,7 @@ export function AppSidebar() {
                 side="top"
                 className="w-[--radix-popper-anchor-width]"
               >
-                <DropdownMenuItem onClick={() => router.push("/app/account")}>
+                <DropdownMenuItem onClick={() => router.push("/main/account")}>
                   <span>Account</span>
                 </DropdownMenuItem>
                 <SidebarMenu>

@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-// app/api/daily-logs/route.ts
-=======
->>>>>>> 151b24c929038729dfc1d57c586f088798d03633
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../../../auth";
 import prisma from "@/lib/db";
@@ -14,11 +10,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-<<<<<<< HEAD
-    // 2. Get date from query params
-=======
     // 2. Get date from query params and format it properly
->>>>>>> 151b24c929038729dfc1d57c586f088798d03633
     const searchParams = request.nextUrl.searchParams;
     const dateParam = searchParams.get("date");
 
@@ -29,35 +21,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-<<<<<<< HEAD
-    const date = new Date(dateParam);
-
-    // 3. Query daily log with meals
-    const dailyLog = await prisma.dailyLonboog.findUnique({
-      where: {
-        userId_date: {
-          userId: session.user.id,
-          date: date,
-        },
-      },
-      include: {
-        meals: {
-          orderBy: {
-            createdAt: "asc",
-          },
-        },
-      },
-    });
-
-    if (!dailyLog) {
-      return NextResponse.json(
-        { error: "Daily log not found" },
-        { status: 404 }
-      );
-    }
-
-    // 4. Return formatted response
-=======
     // Create start and end date for the full day
     const startDate = new Date(dateParam);
     startDate.setHours(0, 0, 0, 0);
@@ -150,21 +113,16 @@ export async function GET(request: NextRequest) {
     }
 
     // 6. Return formatted response
->>>>>>> 151b24c929038729dfc1d57c586f088798d03633
-    return NextResponse.json({
-      success: true,
-      data: dailyLog,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: dailyLog,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching daily log:", error);
     return NextResponse.json(
-<<<<<<< HEAD
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
-=======
       {
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",
@@ -241,10 +199,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      data: meal,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: meal,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error adding meal:", error);
     return NextResponse.json(
@@ -256,4 +217,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
->>>>>>> 151b24c929038729dfc1d57c586f088798d03633

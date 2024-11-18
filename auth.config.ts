@@ -16,6 +16,7 @@ export const authConfig: NextAuthConfig = {
     Resend({
       apiKey: process.env.RESEND_API_KEY!,
       from: process.env.EMAIL_FROM!,
+      maxAge: 24 * 60 * 60,
       sendVerificationRequest: async ({ identifier, url, provider }) => {
         const { host } = new URL(url);
         try {
@@ -28,14 +29,14 @@ export const authConfig: NextAuthConfig = {
             body: JSON.stringify({
               from: provider.from,
               to: identifier,
-              subject: `Verify your email for Brevit`,
+              subject: `Verify your email for Nutriwise`,
               html: `
                 <!DOCTYPE html>
                 <html>
                   <head>
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Verify your email for Brevit</title>
+                    <title>Verify your email for Nutriwise</title>
                   </head>
                   <body style="margin: 0; padding: 0; background-color: #f9fafb;">
                     <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; padding: 45px 15px;">
