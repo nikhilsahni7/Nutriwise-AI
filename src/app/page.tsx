@@ -16,13 +16,19 @@ import Link from "next/link";
 import { TypeAnimation } from "react-type-animation";
 import { useInView } from "react-intersection-observer";
 import Footer from "@/components/footer";
-
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 gsap.registerPlugin(ScrollTrigger);
 
 function Home() {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, 50]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const { data: session } = useSession();
+  const router = useRouter();
+  if (session) {
+    router.push("/main");
+  }
 
   const [heroRef] = useInView({
     triggerOnce: true,
