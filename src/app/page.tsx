@@ -17,6 +17,7 @@ import { TypeAnimation } from "react-type-animation";
 import { useInView } from "react-intersection-observer";
 import Footer from "@/components/footer";
 import { useSession } from "next-auth/react";
+import CountUp from "react-countup";
 import { useRouter } from "next/navigation";
 gsap.registerPlugin(ScrollTrigger);
 
@@ -30,10 +31,18 @@ function Home() {
     router.push("/main");
   }
 
+
+
   const [heroRef] = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
+
+  const [featuresRef, featuresInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
 
   const heroImage =
     "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=2070";
@@ -232,56 +241,123 @@ function Home() {
       </section>
       {/* Features Section */}
       <section className="py-20 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold font-playfair mb-6">
-              Revolutionizing Your Cooking Experience
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover a world of culinary possibilities with our innovative
-              features
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+        <div>
+          {[
+            {
+              title: "AI-Driven Meal Recommendations",
+              description:
+                "Get personalized meal suggestions based on your health goals, preferences, and nutritional needs.",
+              image: heroImage,
+              reverse: false,
+            },
+            {
+              title: "Track Your Nutritional Intake",
+              description:
+                "Easily log meals with AI-powered image recognition and track your calories, macronutrients, and more.",
+              image: dessertImage,
+              reverse: true,
+            },
+            {
+              title: "Mindful Eating for Well-Being",
+              description:
+                "Improve both your physical and mental health with mindful eating practices and nutrition timing.",
+              image: healthyImage,
+              reverse: false,
+            },
+            {
+              title: "Talk to your personal health expert",
+              description:
+                "We leverage AI to create your own personal friendly health expert.",
+              image: healthyImage,
+              reverse: true,
+            },
+          ].map((section, index) => (
+            <motion.section
+              key={index}
+              ref={featuresRef}
+              className={`py-24 px-6 lg:px-12 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div
+                className={`max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${section.reverse ? "md:flex-row-reverse" : ""
+                  }`}
               >
-                <div className="text-primary mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
+                <div className={section.reverse ? "md:order-2" : ""}>
+                  <motion.h2
+                    className="text-5xl md:text-6xl font-bold mb-8 leading-tight font-playfair"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {section.title}
+                  </motion.h2>
+                  <motion.p
+                    className="text-gray-600 mb-10 text-xl font-lato"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {section.description}
+                  </motion.p>
+                  <motion.button
+                    whileHover={{ scale: 1.05, boxShadow: "0 8px 20px rgba(0,0,0,0.1)" }}
+                    whileTap={{ scale: 0.95 }}
+                    className="group flex items-center space-x-3 bg-black text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:bg-gray-800"
+                  >
+                    <span>Get Started</span>
+                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  </motion.button>
+                </div>
+                <motion.div
+                  className={`relative ${section.reverse ? "md:order-1" : ""}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+                    <img
+                      src={section.image}
+                      alt={section.title}
+                      className="w-full h-[600px] object-cover transform hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.section>
+          ))}
         </div>
       </section>
+
 
       {/* Statistics Section */}
       <section className="bg-black text-white py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[
-              { number: "1k+", label: "Active Users" },
-              { number: "5000+", label: "Recipes" },
-              { number: "100+", label: "Expert Chefs" },
+              { number: 1000, label: "Active Users", suffix: "+" },
+              { number: 5000, label: "Recipes", suffix: "+" },
+              { number: 100, label: "Expert Chefs", suffix: "+" },
             ].map((stat, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
                 className="text-center"
               >
-                <div className="text-5xl font-bold mb-2">{stat.number}</div>
+                <div className="text-5xl font-bold mb-2">
+                  <CountUp
+                    start={0}
+                    end={stat.number}
+                    duration={2}
+                    suffix={stat.suffix}
+                    enableScrollSpy
+                  />
+                </div>
                 <div className="text-gray-400">{stat.label}</div>
               </motion.div>
             ))}
@@ -289,18 +365,16 @@ function Home() {
         </div>
       </section>
 
-      {/* Featured Sections */}
+      {/* Featured Sections
       {sections.map((section, index) => (
         <motion.section
           key={index}
-          className={`py-24 px-6 lg:px-12 ${
-            index % 2 === 0 ? "bg-white" : "bg-gray-50"
-          }`}
+          className={`py-24 px-6 lg:px-12 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+            }`}
         >
           <div
-            className={`max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${
-              section.reverse ? "md:flex-row-reverse" : ""
-            }`}
+            className={`max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${section.reverse ? "md:flex-row-reverse" : ""
+              }`}
           >
             <div>
               <h2 className="text-5xl md:text-6xl font-bold mb-8 leading-tight font-playfair">
@@ -330,7 +404,7 @@ function Home() {
             </div>
           </div>
         </motion.section>
-      ))}
+      ))} */}
 
       <Footer />
     </div>

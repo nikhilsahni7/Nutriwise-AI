@@ -13,7 +13,7 @@ function About() {
     },
     {
       name: "Harsh Thakur",
-      role: "Frontend Developer",
+      role: "Full Stack Developer",
       image: "/harsh.jpeg",
     },
     {
