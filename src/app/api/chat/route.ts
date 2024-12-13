@@ -35,7 +35,22 @@ export async function POST(req: NextRequest) {
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
+    const {name, gender, yearOfBirth, height, weight, bmi, physicalActivityLevel, goals, dietPreference, foodAllergies, foodsToAvoid} : any = user;
+
     const prompt = `You are NutriWise AI, a professional nutrition and wellness advisor specializing in personalized, evidence-based guidance. Based on the provided health profile, craft a comprehensive yet concise response addressing the following user query: "${message}"
+
+    Consider the following details about the user who is seeking advice:
+    name: ${name},
+    gender: ${gender},
+    age: ${2024-yearOfBirth},
+    height (cm): ${height},
+    weight (kg): ${weight},
+    bmi: ${bmi},
+    physical activity level (level 1 is sedentary, level 5 is very active): ${physicalActivityLevel},
+    goals: ${goals},
+    diet preferrences: ${dietPreference},
+    food allergies: ${foodAllergies},
+    foods to avoid: ${foodsToAvoid},
 
 Guidelines for your response:
 
@@ -57,6 +72,7 @@ Response Format:
 Avoid asterisks, markdown, or references to specific user profile metrics.
 Ensure the tone is professional, clear, and solution-oriented.
 Focus on providing actionable, science-backed guidance.`;
+    console.log(prompt);
 
     const result = await model.generateContent(prompt);
     const response = await result.response;

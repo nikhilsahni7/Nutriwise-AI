@@ -95,6 +95,7 @@ export function AppSidebar() {
   const router = useRouter();
 
   const { data: session } = useSession();
+  const [status, setStatus] = useState("loaded");
 
   return (
     <Sidebar collapsible="icon" variant="floating" className="border-r">

@@ -34,8 +34,15 @@ export default async function RecipeOfTheDay() {
 
   let data: Recipe | null = null;
   try {
-    const response = await fetch(API_URL, { cache: "no-store" });
+    const response = await fetch(API_URL, {
+      method: 'GET',
+      headers: {
+        'x-api-key': 'cosylab'
+      },
+      cache: 'no-store' 
+    });
     const result = await response.json();
+    console.log(result);
     data = result.payload;
   } catch (error) {
     return (

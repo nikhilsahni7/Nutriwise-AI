@@ -19,6 +19,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Search } from 'lucide-react'
+import { Input } from "@/components/ui/input"
 
 interface Recipe {
   Recipe_id: string;
@@ -46,9 +48,9 @@ interface TagSelectorProps {
 }
 
 interface ApiResponse {
-  success: string;
+  success?: string;
   payload?: {
-    data: Recipe[];
+    data?: any[];
   };
 }
 
@@ -56,7 +58,7 @@ type MoodType = "Happy" | "Energetic" | "Relaxed" | "Stressed" | "Tired";
 type SeasonType = "Spring" | "Summer" | "Autumn" | "Winter";
 type RegionType =
   | "Indian"
-  | "Mediterranean"
+  | "Australian"
   | "Chinese"
   | "Mexican"
   | "Italian";
@@ -68,6 +70,7 @@ const MealRecommendations: React.FC = () => {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState("")
 
   const moods: MoodType[] = [
     "Happy",
@@ -79,7 +82,7 @@ const MealRecommendations: React.FC = () => {
   const seasons: SeasonType[] = ["Spring", "Summer", "Autumn", "Winter"];
   const regions: RegionType[] = [
     "Indian",
-    "Mediterranean",
+    "Australian",
     "Chinese",
     "Mexican",
     "Italian",
@@ -104,21 +107,43 @@ const MealRecommendations: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://cosylab.iiitd.edu.in/recipe-search/recipe?pageSize=10&searchText=${searchText}`
+        `/api/receipes?searchText=${encodeURIComponent(searchText)}`, 
+        {
+          method: 'GET',
+          cache: 'no-store' 
+        }
       );
-      const data: ApiResponse = await response.json();
+  
+      // Log the raw response for debugging
+      const responseText = await response.text();
+  
+      const data: ApiResponse = responseText ? JSON.parse(responseText) : {};
+  
       if (data.success === "true" && data.payload?.data) {
         setRecipes(data.payload.data);
+        console.log(data.payload.data);
+      } else {
+        console.warn('Unexpected response structure:', data);
+        setRecipes([]); 
       }
     } catch (error) {
       console.error("Error fetching recipes:", error);
+      setRecipes([]); // Ensure recipes is reset on error
     } finally {
       setLoading(false);
     }
   };
+  
+  const handleRecipeSearch = () => {
+    console.log(searchQuery)
+    if(searchQuery.length === 0)
+      return;
+
+    fetchRecipes(searchQuery)
+  }
 
   useEffect(() => {
-    fetchRecipes("Indian"); // Initial load with Indian cuisine
+      fetchRecipes("Indian");
   }, []);
 
   const filterRecipesBySeason = (season: string): Recipe[] => {
@@ -198,6 +223,8 @@ const MealRecommendations: React.FC = () => {
     </div>
   );
 
+
+
   return (
     <div className="container w-full h-full mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6 text-center">
@@ -218,6 +245,29 @@ const MealRecommendations: React.FC = () => {
           </TabsList>
 
           <TabsContent value="all">
+
+            <div className="w-full max-w-[500px] flex gap-2 mb-4 mt-4">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-grow"
+              />
+              <Button 
+                type="submit" 
+                size="icon"
+                onClick={handleRecipeSearch}
+              >
+                <Search className="h-4 w-4" />
+                <span 
+                  className="sr-only"
+                >
+                  Search
+                </span>
+              </Button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {recipes.map((recipe) => (
                 <RecipeCard key={recipe.Recipe_id} recipe={recipe} />

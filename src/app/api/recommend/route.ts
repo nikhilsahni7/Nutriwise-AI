@@ -7,7 +7,7 @@ export async function POST(req: Request) {
 
     // First fetch some initial recipes to ensure we have data to work with
     const response = await fetch(
-      `https://cosylab.iiitd.edu.in/recipe-search/recipe?pageSize=20&searchText=indian`
+      `https://cosylab.iiitd.edu.in/recipe-search/recipe?pageSize=30&searchText=indian`
     );
     const initialData = await response.json();
 
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const prompt = `Given the following user preferences and this list of available recipes: ${availableRecipes.join(
       ", "
     )}, 
-    suggest 5 recipes that match their requirements. Only suggest recipes from the provided list.
+    return only an array of indices for which the recipe matches the following user preferences and goals:
     
     User Preferences:
     - Goals: ${userPreferences.goals}
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
+    console.log(text);
 
     // Return both the AI suggestions and the initial recipe data
     return Response.json({
