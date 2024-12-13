@@ -137,6 +137,28 @@ function Home() {
           </motion.div>
           <div className="hidden md:flex items-center space-x-8">
             <motion.a
+              href="/auth/signin"
+              className="text-white hover:text-gray-300 transition font-lato relative group"
+              whileHover={{ scale: 1.1 }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Login
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
+            </motion.a>
+            <motion.a
+              href="/auth/signin"
+              className="text-white hover:text-gray-300 transition font-lato relative group"
+              whileHover={{ scale: 1.1 }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Signin
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
+            </motion.a>
+            <motion.a
               href="/about"
               className="text-white hover:text-gray-300 transition font-lato relative group"
               whileHover={{ scale: 1.1 }}
@@ -145,6 +167,17 @@ function Home() {
               transition={{ duration: 0.5 }}
             >
               About
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
+            </motion.a>
+            <motion.a
+              href="/about"
+              className="text-white hover:text-gray-300 transition font-lato relative group"
+              whileHover={{ scale: 1.1 }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Contact Us
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
             </motion.a>
           </div>
@@ -365,46 +398,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Featured Sections
-      {sections.map((section, index) => (
-        <motion.section
-          key={index}
-          className={`py-24 px-6 lg:px-12 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
-            }`}
-        >
-          <div
-            className={`max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${section.reverse ? "md:flex-row-reverse" : ""
-              }`}
-          >
-            <div>
-              <h2 className="text-5xl md:text-6xl font-bold mb-8 leading-tight font-playfair">
-                {section.title}
-              </h2>
-              <p className="text-gray-600 mb-10 text-xl font-lato">
-                {section.description}
-              </p>
-              <motion.button
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="group flex items-center space-x-3 bg-black text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:bg-gray-800"
-              >
-                <span>Explore More</span>
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-              </motion.button>
-            </div>
-            <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-              <img
-                src={section.image}
-                alt={section.title}
-                className="w-full h-[600px] object-cover transform hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-          </div>
-        </motion.section>
-      ))} */}
+
 
       <Footer />
     </div>

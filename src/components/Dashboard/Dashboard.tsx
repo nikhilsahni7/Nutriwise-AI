@@ -98,10 +98,10 @@ export default function Dashboard() {
 
   const macroData = dailyLog
     ? [
-        { name: "Carbohydrates", grams: dailyLog.totalCarbs },
-        { name: "Protein", grams: dailyLog.totalProtein },
-        { name: "Fats", grams: dailyLog.totalFats },
-      ]
+      { name: "Carbohydrates", grams: dailyLog.totalCarbs },
+      { name: "Protein", grams: dailyLog.totalProtein },
+      { name: "Fats", grams: dailyLog.totalFats },
+    ]
     : [];
 
   const getMicronutrientValue = () => {
@@ -149,7 +149,7 @@ export default function Dashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="text-4xl font-bold text-center">
-            Daily Nutrition Dashboard
+            Your Meal Nutrition Dashboard
           </CardTitle>
         </CardHeader>
       </Card>

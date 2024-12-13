@@ -34,7 +34,6 @@ function MealTracker() {
     }
   };
 
-  // In Tracker.tsx, update handleSubmit:
   const handleSubmit = async () => {
     if (!imageFile || !mealType) {
       toast.error("Please select an image and meal type");
@@ -45,7 +44,6 @@ function MealTracker() {
     try {
       const formData = new FormData();
       formData.append("imageFile", imageFile);
-      // Convert UPPERCASE meal type to lowercase
       formData.append("mealType", mealType.toLowerCase());
       formData.append("portions", portions);
 
@@ -61,6 +59,10 @@ function MealTracker() {
 
       toast.success("Meal logged successfully!");
       resetForm();
+
+      setTimeout(() => {
+        window.location.href = "/main/dashboard"; 
+      }, 250);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to log meal"
@@ -70,6 +72,7 @@ function MealTracker() {
       setLoading(false);
     }
   };
+
   const resetForm = () => {
     setImageFile(null);
     setImagePreview("");
@@ -80,7 +83,7 @@ function MealTracker() {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Log Your Meal</CardTitle>
+        <CardTitle className="text-4xl">Track Your Meal</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <Select value={mealType} onValueChange={setMealType}>
@@ -138,7 +141,7 @@ function MealTracker() {
           className="w-full"
           disabled={loading || !imageFile || !mealType}
         >
-          {loading ? "Processing..." : "Log Meal"}
+          {loading ? "Processing..." : "Track Meal"}
         </Button>
       </CardContent>
     </Card>

@@ -236,12 +236,12 @@ const MealRecommendations: React.FC = () => {
           <p className="text-lg font-semibold">Loading...</p>
         </div>
       ) : (
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all">All Recipes</TabsTrigger>
-            <TabsTrigger value="moods">Moods</TabsTrigger>
-            <TabsTrigger value="seasons">Seasons</TabsTrigger>
-            <TabsTrigger value="regions">Regions</TabsTrigger>
+        <Tabs defaultValue="all" className="w-full h-16 rounded-3xl">
+          <TabsList className="grid w-full grid-cols-4 h-16 rounded-3xl">
+            <TabsTrigger value="all" className="h-12 rounded-3xl">All Recipes</TabsTrigger>
+            <TabsTrigger value="moods" className="h-12 rounded-3xl">Moods</TabsTrigger>
+            <TabsTrigger value="seasons" className="h-12 rounded-3xl">Seasons</TabsTrigger>
+            <TabsTrigger value="regions" className="h-12 rounded-3xl">Regions</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all">
