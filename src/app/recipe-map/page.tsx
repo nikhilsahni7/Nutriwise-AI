@@ -1,17 +1,39 @@
 "use client"
 
-import React, { useState, useCallback, useEffect, useRef } from "react"
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api"
+import React, { useState, useCallback, useEffect, ChangeEvent } from "react"
+import { GoogleMap, useJsApiLoader, Marker, OverlayView } from "@react-google-maps/api"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Search, Loader2, MapPin, List, Clock, Utensils, FlameIcon as Fire, ChefHat, ExternalLink } from 'lucide-react'
+import { FaUtensils, FaInfoCircle } from "react-icons/fa"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Filter, LogOut, Settings, Search, X, Menu, Plus, ZoomIn, ZoomOut, Compass, Clock, Utensils, FlameIcon as Fire, ChefHat, ExternalLink } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import CountUp from "react-countup"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Loader2 } from 'lucide-react'
+import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import Link from "next/link"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Label } from "@/components/ui/label"
 
-export interface Recipe {
+// Map styles
+const mapStyles = [
+  {
+    featureType: "all",
+    elementType: "labels",
+    stylers: [{ visibility: "on" }, { saturation: -20 }, { lightness: -10 }],
+  },
+]
+
+interface PageProps {
+  params?: { [key: string]: string | string[] }
+  searchParams?: { [key: string]: string | string[] }
+}
+
+interface Meal {
   Recipe_id: string
   Recipe_title: string
   cook_time: string
@@ -25,6 +47,10 @@ export interface Recipe {
   total_time: string
   Utensils: string
   Processes: string
+  location: {
+    coordinates: [number, number]
+    address: string
+  }
 }
 
 const continents = [
@@ -35,24 +61,33 @@ const continents = [
   { name: "Indian Subcontinent", coordinates: { lat: 20.5937, lng: 78.9629 } },
 ]
 
-export default function SocialConnectMap() {
-  const [recipes, setRecipes] = useState<Recipe[]>([])
-  const [selectedContinent, setSelectedContinent] = useState<string | null>(null)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([])
+export default function MealMap({ params, searchParams }: PageProps) {
+  const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null)
+  const [hoveredMeal, setHoveredMeal] = useState<Meal | null>(null)
   const [map, setMap] = useState<google.maps.Map | null>(null)
-  const [hoveredMarker, setHoveredMarker] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<"map" | "list">("map")
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
-
-  const mapRef = useRef<google.maps.Map | null>(null)
+  const [meals, setMeals] = useState<Meal[]>([])
+  const [filteredMeals, setFilteredMeals] = useState<Meal[]>([])
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [selectedContinent, setSelectedContinent] = useState<string | null>(null)
+  const [isMobileDevice, setIsMobileDevice] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([])
+  const [isMealPanelOpen, setIsMealPanelOpen] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  // Removed: const [location, setLocation] = useState("")
+  const router = useRouter()
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries: ["places"],
   })
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const fetchRecipes = useCallback(async (continent: string | null = null) => {
     try {
@@ -61,8 +96,8 @@ export default function SocialConnectMap() {
       )
       const data = await response.json()
       if (data.payload && Array.isArray(data.payload.data)) {
-        setRecipes(data.payload.data)
-        setFilteredRecipes(data.payload.data)
+        setMeals(data.payload.data)
+        setFilteredMeals(data.payload.data)
       }
     } catch (error) {
       console.error("Error fetching recipes:", error)
@@ -72,6 +107,8 @@ export default function SocialConnectMap() {
   useEffect(() => {
     if (selectedContinent) {
       fetchRecipes(selectedContinent)
+    } else {
+      fetchRecipes()
     }
   }, [selectedContinent, fetchRecipes])
 
@@ -79,255 +116,343 @@ export default function SocialConnectMap() {
     mapInstance.setCenter({ lat: 20.0, lng: 0.0 })
     mapInstance.setZoom(2)
     setMap(mapInstance)
-    mapRef.current = mapInstance
   }, [])
+
+  const mapOptions = {
+    mapTypeId: "roadmap",
+    disableDefaultUI: true,
+    zoomControl: false,
+    streetViewControl: false,
+    mapTypeControl: false,
+    fullscreenControl: false,
+    styles: mapStyles,
+  }
 
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value)
-    const filtered = recipes.filter(
-      (recipe) =>
-        recipe.Recipe_title.toLowerCase().includes(value.toLowerCase()) ||
-        recipe.Region.toLowerCase().includes(value.toLowerCase()) ||
-        recipe.Sub_region.toLowerCase().includes(value.toLowerCase())
+    const filtered = meals.filter(
+      (meal) =>
+        meal.Recipe_title.toLowerCase().includes(value.toLowerCase()) ||
+        meal.Region.toLowerCase().includes(value.toLowerCase()) ||
+        meal.Sub_region.toLowerCase().includes(value.toLowerCase())
     )
-    setFilteredRecipes(filtered)
-  }, [recipes])
+    setFilteredMeals(filtered)
+  }, [meals])
 
-  const handleMarkerClick = useCallback((continent: string) => {
-    setSelectedContinent(continent)
-    const continentData = continents.find((c) => c.name === continent)
-    if (continentData && mapRef.current) {
-      mapRef.current.panTo(continentData.coordinates)
-      mapRef.current.setZoom(4)
+  const handleFilterContinent = useCallback(
+    (continent: string | null) => {
+      setSelectedContinent(continent)
+    },
+    []
+  )
+
+  const handleSelectSuggestion = (value: string) => {
+    setSearchQuery(value)
+    const filtered = meals.filter(
+      (meal) =>
+        meal.Recipe_title.toLowerCase().includes(value.toLowerCase()) ||
+        meal.Region.toLowerCase().includes(value.toLowerCase())
+    )
+    setFilteredMeals(filtered)
+  }
+
+  const truncateText = (text: string, wordLimit: number): string => {
+    const words = text.split(" ")
+    if (words.length > wordLimit) {
+      return words.slice(0, wordLimit).join(" ") + " ..."
     }
-    // Simulate selecting a random recipe from the continent
-    const randomRecipe = recipes[Math.floor(Math.random() * recipes.length)]
-    setSelectedRecipe(randomRecipe)
-  }, [recipes])
+    return text
+  }
 
-  const handleCloseSearch = useCallback(() => {
-    setIsSearchOpen(false)
-    setSearchQuery("")
-    setFilteredRecipes(recipes)
-  }, [recipes])
-
-  const handleRecipeClick = useCallback((recipe: Recipe) => {
-    setSelectedRecipe(recipe)
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileDevice(window.innerWidth < 768)
+    }
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
   }, [])
 
+  const handleMarkerClick = (meal: Meal) => {
+    setSelectedMeal(meal)
+    setIsMealPanelOpen(true)
+    setIsSearchOpen(false)
+    setIsMenuOpen(false)
+    if (map) {
+      map.panTo({
+        lat: meal.location.coordinates[1],
+        lng: meal.location.coordinates[0],
+      })
+    }
+  }
+
+  const handleZoomIn = () => {
+    if (map) map.setZoom(map.getZoom()! + 1)
+  }
+
+  const handleZoomOut = () => {
+    if (map) map.setZoom(map.getZoom()! - 1)
+  }
+
+  const handleResetView = () => {
+    if (map && meals.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds()
+      meals.forEach((meal) =>
+        bounds.extend({
+          lat: meal.location.coordinates[1],
+          lng: meal.location.coordinates[0],
+        })
+      )
+      map.fitBounds(bounds)
+    }
+  }
+
   if (loadError) {
-    return <div>Error loading maps</div>
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-black">
+        <p className="text-xl text-white font-medium">
+          Error loading map: Looks like a Network Issue
+        </p>
+      </div>
+    )
   }
 
   if (!isLoaded) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-black">
-        <Loader2 className="w-16 h-16 text-white animate-spin" />
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-black">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-16 h-16 text-white animate-spin mx-auto" />
+          <h2 className="text-2xl md:text-3xl font-bold text-white">
+            Loading...
+          </h2>
+          <p className="text-lg text-blue-300">
+            Discovering delicious meals around the world
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="h-screen w-full relative overflow-hidden">
-      {viewMode === "map" && (
+    <div className="h-screen w-full relative bg-gray-900">
+      <div className="absolute top-0 z-30 left-0 w-full h-[20%] bg-gradient-to-b from-black/80 to-transparent pointer-events-none"></div>
+      <div className="absolute bottom-0 z-10 left-0 w-full h-[20%] bg-gradient-to-b from-transparent to-black/70 pointer-events-none"></div>
+      {isClient && (
         <GoogleMap
           mapContainerStyle={{ width: "100%", height: "100%" }}
+          zoom={10}
           onLoad={onLoad}
-          options={{
-            mapTypeId: "roadmap",
-            disableDefaultUI: true,
-            zoomControl: true,
-            styles: [
-              {
-                featureType: "all",
-                elementType: "labels.text.fill",
-                stylers: [{ color: "#7c93a3" }, { lightness: "-10" }],
-              },
-              {
-                featureType: "administrative.country",
-                elementType: "geometry",
-                stylers: [{ visibility: "on" }],
-              },
-              {
-                featureType: "administrative.country",
-                elementType: "geometry.stroke",
-                stylers: [{ color: "#a0a4a5" }],
-              },
-              {
-                featureType: "administrative.province",
-                elementType: "geometry.stroke",
-                stylers: [{ color: "#62838e" }],
-              },
-              {
-                featureType: "landscape",
-                elementType: "geometry.fill",
-                stylers: [{ color: "#dde3e3" }],
-              },
-              {
-                featureType: "landscape.man_made",
-                elementType: "geometry.stroke",
-                stylers: [{ color: "#3f4a51" }, { weight: "0.30" }],
-              },
-              {
-                featureType: "poi",
-                elementType: "all",
-                stylers: [{ visibility: "simplified" }],
-              },
-              {
-                featureType: "road.highway",
-                elementType: "all",
-                stylers: [{ visibility: "off" }],
-              },
-              {
-                featureType: "transit",
-                elementType: "all",
-                stylers: [{ visibility: "off" }],
-              },
-              {
-                featureType: "water",
-                elementType: "geometry.fill",
-                stylers: [{ color: "#a3c7df" }],
-              },
-            ],
-          }}
+          options={mapOptions}
         >
-          {continents.map((continent) => (
-            <Marker
-              key={continent.name}
-              position={continent.coordinates}
-              onClick={() => handleMarkerClick(continent.name)}
-              onMouseOver={() => setHoveredMarker(continent.name)}
-              onMouseOut={() => setHoveredMarker(null)}
-              icon={{
-                url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="60" viewBox="0 0 40 60">
-                    <path d="M20 0 C8.954 0 0 8.954 0 20 C0 35 20 60 20 60 C20 60 40 35 40 20 C40 8.954 31.046 0 20 0 Z" fill="#FF6347" />
-                    <text x="20" y="35" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="white">🍲</text>
-                  </svg>
-                `)}`,
-                scaledSize: new google.maps.Size(40, 60),
-                anchor: new google.maps.Point(20, 60),
-              }}
-            />
+          {filteredMeals.map((meal) => (
+            <React.Fragment key={meal.Recipe_id}>
+              {meal.location?.coordinates && (
+                <Marker
+                  position={{
+                    lat: meal.location.coordinates[1],
+                    lng: meal.location.coordinates[0],
+                  }}
+                  onClick={() => handleMarkerClick(meal)}
+                  onMouseOver={() => setHoveredMeal(meal)}
+                  onMouseOut={() => setHoveredMeal(null)}
+                  icon={{
+                    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+                      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="60" viewBox="0 0 40 60">
+                        <path d="M20 0 C8.954 0 0 8.954 0 20 C0 35 20 60 20 60 C20 60 40 35 40 20 C40 8.954 31.046 0 20 0 Z" fill="#FF6347" />
+                        <text x="20" y="24" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" dominant-baseline="middle">🍲</text>
+                      </svg>
+                    `)}`,
+                    scaledSize: new google.maps.Size(40, 60),
+                    anchor: new google.maps.Point(20, 60),
+                  }}
+                />
+              )}
+
+              {hoveredMeal === meal && (
+                <OverlayView
+                  position={{
+                    lat: meal.location.coordinates[1],
+                    lng: meal.location.coordinates[0],
+                  }}
+                  mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                >
+                  <Card className="relative w-48 bg-white border-[3px] border-red-500 border-opacity-50 backdrop-blur-sm hover:scale-105 transition-transform duration-300 ease-in-out rounded-md">
+                    <CardHeader className="p-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm text-black font-semibold line-clamp-2">
+                          {meal.Recipe_title}
+                        </CardTitle>
+                        <Badge
+                          variant="outline"
+                          className="text-sm p-1 bg-red-100 text-red-600 rounded-md"
+                        >
+                          🍲
+                        </Badge>
+                      </div>
+                      <CardDescription className="text-red-500 text-xs font-medium line-clamp-1">
+                        {meal.Region}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-3">
+                      <p className="text-gray-700 text-xs mb-1 line-clamp-2">
+                        {meal.Processes}
+                      </p>
+                      <p className="text-gray-500 text-xs italic line-clamp-2">
+                        {meal.Sub_region}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </OverlayView>
+              )}
+            </React.Fragment>
           ))}
-          {hoveredMarker && (
-            <InfoWindow
-              position={continents.find((c) => c.name === hoveredMarker)?.coordinates}
-              onCloseClick={() => setHoveredMarker(null)}
-            >
-              <div className="bg-white p-4 rounded-lg shadow-lg">
-                <h3 className="font-bold text-lg mb-2">{hoveredMarker} Cuisine</h3>
-                <p className="text-sm text-gray-600">Click to explore delicious recipes from this region!</p>
-                <div className="mt-2 flex items-center text-yellow-500">
-                  <Utensils className="w-4 h-4 mr-1" />
-                  <span className="text-xs">Discover unique flavors</span>
-                </div>
-              </div>
-            </InfoWindow>
-          )}
         </GoogleMap>
       )}
 
-      {viewMode === "list" && (
-        <div className="h-full w-full bg-gray-100 p-4 overflow-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredRecipes.map((recipe) => (
-              <Card key={recipe.Recipe_id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleRecipeClick(recipe)}>
-                <CardHeader>
-                  <CardTitle>{recipe.Recipe_title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="aspect-w-16 aspect-h-9 mb-4">
-                    <Image
-                      src={recipe.img_url || "/placeholder.svg?height=200&width=400"}
-                      alt={recipe.Recipe_title}
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded-md"
-                    />
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    {recipe.Region}, {recipe.Sub_region}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Prep time: {recipe.prep_time} | Cook time: {recipe.cook_time}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      {/* Total Meals Section */}
+      <div className="sm:ml-4 mb-2">
+        <div
+          className="text-sm font-semibold text-white bg-red-600 px-4 py-2 rounded-full"
+          style={{ boxShadow: "0px 10px 15px rgba(0, 0, 0, 0.1)" }}
+        >
+          Total Meals:{" "}
+          <CountUp
+            start={0}
+            end={filteredMeals.length}
+            duration={2}
+            separator=","
+            enableScrollSpy={true}
+          />
+        </div>
+      </div>
+
+      {/* Map Controls */}
+      {!isMobileDevice && (
+        <div className="absolute bottom-8 right-6 z-10 flex space-x-3 justify-end">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="bg-white hover:bg-gray-100"
+                  onClick={handleZoomIn}
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Zoom In</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="bg-white hover:bg-gray-100"
+                  onClick={handleZoomOut}
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Zoom Out</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="bg-white hover:bg-gray-100"
+                  onClick={handleResetView}
+                >
+                  <Compass className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Reset View</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       )}
 
-      <div className="absolute top-4 left-4 flex space-x-2 z-10">
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => setIsSearchOpen(true)}
-          className="bg-white hover:bg-gray-100 shadow-md"
-        >
-          <Search className="h-6 w-6 text-gray-700" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
-          className="bg-white hover:bg-gray-100 shadow-md"
-        >
-          {viewMode === "map" ? (
-            <List className="h-6 w-6 text-gray-700" />
-          ) : (
-            <MapPin className="h-6 w-6 text-gray-700" />
-          )}
-        </Button>
+     
+
+      {/* Search and Menu Controls */}
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="flex space-x-4">
+          {/* Search Button */}
+          <Button
+            className="relative py-7 px-6 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-[0_0.25rem_0_rgb(220,38,38),0_0.75rem_0.5rem_rgba(220,38,38,0.5)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-[0.2rem] active:shadow-[0_0.1rem_0.3rem_rgba(220,38,38,0.5)] flex items-center"
+            onClick={() => {
+              setIsSearchOpen(!isSearchOpen);
+              setIsMealPanelOpen(false);
+              setIsMenuOpen(false);
+            }}
+          >
+            <Search className="mr-2 h-6 w-6" />
+            Search Meals
+          </Button>
+        </div>
       </div>
 
+      {/* Search Menu */}
       <AnimatePresence>
         {isSearchOpen && (
           <motion.div
-            initial={{ x: 300 }}
+            initial={{ x: "100%" }}
             animate={{ x: 0 }}
-            exit={{ x: 300 }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30,
-            }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed top-0 right-0 h-full w-96 bg-white shadow-lg z-50 p-4"
           >
             <div className="flex items-center justify-between mb-4">
-              <CardTitle>Search Recipes</CardTitle>
-              <Button variant="ghost" size="icon" onClick={handleCloseSearch}>
-                <X size={24} />
+              <h2 className="text-xl font-semibold">Search Meals</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSearchOpen(false)}
+              >
+                <X className="h-6 w-6" />
               </Button>
             </div>
             <Input
-              placeholder="Search recipes"
+              type="text"
+              placeholder="Search meals..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               className="mb-4"
             />
             <ScrollArea className="h-[calc(100vh-120px)]">
-              {filteredRecipes.map((recipe) => (
-                <Card key={recipe.Recipe_id} className="mb-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleRecipeClick(recipe)}>
+              {filteredMeals.map((meal) => (
+                <Card
+                  key={meal.Recipe_id}
+                  className="mb-4 hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => handleMarkerClick(meal)}
+                >
                   <CardHeader>
-                    <CardTitle>{recipe.Recipe_title}</CardTitle>
+                    <CardTitle>{meal.Recipe_title}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="aspect-w-16 aspect-h-9 mb-4">
                       <Image
-                        src={recipe.img_url || "/placeholder.svg?height=200&width=400"}
-                        alt={recipe.Recipe_title}
+                        src={meal.img_url || "/placeholder.svg?height=200&width=400"}
+                        alt={meal.Recipe_title}
                         layout="fill"
                         objectFit="cover"
                         className="rounded-md"
                       />
                     </div>
                     <p className="text-sm text-gray-600">
-                      {recipe.Region}, {recipe.Sub_region}
+                      {meal.Region}, {meal.Sub_region}
                     </p>
                     <p className="text-sm text-gray-600">
-                      Prep time: {recipe.prep_time} | Cook time: {recipe.cook_time}
+                      Prep time: {meal.prep_time} | Cook time: {meal.cook_time}
                     </p>
                   </CardContent>
                 </Card>
@@ -337,69 +462,66 @@ export default function SocialConnectMap() {
         )}
       </AnimatePresence>
 
+      {/* Meal Details Panel */}
       <AnimatePresence>
-        {selectedRecipe && (
+        {isMealPanelOpen && selectedMeal && (
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: "0%" }}
             exit={{ x: "100%" }}
-            transition={{
-              type: "spring",
-              stiffness: 50,
-              damping: 20,
-            }}
-            className="fixed items-center top-16 right-4 h-[calc(100vh-30vh)] w-[60vh] max-w-md bg-white rounded-3xl shadow-lg z-50 overflow-hidden border-4 border-red-500"
+            transition={{ type: "spring", stiffness: 50, damping: 20 }}
+            className="fixed top-0 right-0 h-full w-96 bg-white shadow-lg z-50 overflow-hidden"
           >
-            <Card className="h-full">
-              <CardHeader className="relative pb-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSelectedRecipe(null)}
-                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                >
-                  <X size={24} />
-                </Button>
-                <div className="aspect-w-16 h-16 mb-4 rounded-2xl overflow-hidden">
+            <Card className="h-full relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMealPanelOpen(false)}
+                className="absolute top-4 right-4 z-10"
+              >
+                <X size={24} />
+              </Button>
+              <CardHeader className="pb-0">
+                <div className="aspect-w-16 aspect-h-9 mb-4 rounded-t-lg overflow-hidden">
                   <Image
-                    src={selectedRecipe.img_url || "/placeholder.svg?height=200&width=400"}
-                    alt={selectedRecipe.Recipe_title}
+                    src={selectedMeal.img_url || "/placeholder.svg?height=200&width=400"}
+                    alt={selectedMeal.Recipe_title}
                     layout="fill"
                     objectFit="cover"
                   />
                 </div>
-                <CardTitle className="text-xl font-bold text-gray-800 mt-2">{selectedRecipe.Recipe_title}</CardTitle>
-                <p className="text-sm text-gray-600">{selectedRecipe.Region}, {selectedRecipe.Sub_region}</p>
+                <CardTitle className="text-xl font-bold text-gray-800 mt-2">{selectedMeal.Recipe_title}</CardTitle>
+                <p className="text-sm text-gray-600">{selectedMeal.Region}, {selectedMeal.Sub_region}</p>
               </CardHeader>
               <CardContent className="pb-4 mt-4">
-                <ScrollArea className="h-[calc(100vh-400px)]">
+                <ScrollArea className="h-[calc(100vh-300px)]">
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2 text-gray-700">
                       <Clock className="w-5 h-5" />
-                      <span>Prep: {selectedRecipe.prep_time} | Cook: {selectedRecipe.cook_time}</span>
+                      <span>Prep: {selectedMeal.prep_time} | Cook: {selectedMeal.cook_time}</span>
                     </div>
                     <div className="flex items-center space-x-2 text-gray-700">
                       <Fire className="w-5 h-5" />
-                      <span>{selectedRecipe.Calories} calories</span>
+                      <span>{selectedMeal.Calories} calories</span>
                     </div>
                     <div className="flex items-center space-x-2 text-gray-700">
                       <Utensils className="w-5 h-5" />
-                      <span>{selectedRecipe.Utensils}</span>
+                      <span>{selectedMeal.Utensils}</span>
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800 mb-2">Cooking Process</h3>
-                      <p className="text-gray-700">{selectedRecipe.Processes}</p>
+                      <p className="text-gray-700">{selectedMeal.Processes}</p>
                     </div>
                   </div>
                 </ScrollArea>
               </CardContent>
-              <div className="absolute bottom-4 left-4 right-4 flex space-x-4 mt-2">
+              <div className="absolute bottom-4 left-4 right-4 flex space-x-4">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                        onClick={() => window.open(selectedRecipe.url, '_blank')}
+                        onClick={() => window.open(selectedMeal.url, '_blank')}
                       >
                         <ExternalLink className="w-5 h-5 mr-2" />
                         View Recipe
@@ -430,7 +552,6 @@ export default function SocialConnectMap() {
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   )
 }
