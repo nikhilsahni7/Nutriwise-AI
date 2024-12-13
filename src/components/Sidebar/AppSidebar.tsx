@@ -14,6 +14,7 @@ import {
   Apple,
   Smile,
   LayoutDashboard,
+  Map,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -77,6 +78,11 @@ const items = [
     title: "Community",
     url: "/main/community",
     icon: Smile,
+  },
+  {
+    title: "Recipe-Tour",
+    url: "/recipe-map",
+    icon: Map,
   },
   {
     title: "Recipes",
