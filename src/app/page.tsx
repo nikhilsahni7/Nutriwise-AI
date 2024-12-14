@@ -31,8 +31,6 @@ function Home() {
     router.push("/main");
   }
 
-
-
   const [heroRef] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -42,7 +40,6 @@ function Home() {
     triggerOnce: true,
     threshold: 0.1,
   });
-
 
   const heroImage =
     "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=2070";
@@ -308,14 +305,17 @@ function Home() {
             <motion.section
               key={index}
               ref={featuresRef}
-              className={`py-24 px-6 lg:px-12 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+              className={`py-24 px-6 lg:px-12 ${
+                index % 2 === 0 ? "bg-white" : "bg-gray-50"
+              }`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
               <div
-                className={`max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${section.reverse ? "md:flex-row-reverse" : ""
-                  }`}
+                className={`max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${
+                  section.reverse ? "md:flex-row-reverse" : ""
+                }`}
               >
                 <div className={section.reverse ? "md:order-2" : ""}>
                   <motion.h2
@@ -335,7 +335,10 @@ function Home() {
                     {section.description}
                   </motion.p>
                   <motion.button
-                    whileHover={{ scale: 1.05, boxShadow: "0 8px 20px rgba(0,0,0,0.1)" }}
+                    whileHover={{
+                      scale: 1.05,
+                      boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+                    }}
                     whileTap={{ scale: 0.95 }}
                     className="group flex items-center space-x-3 bg-black text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:bg-gray-800"
                   >
@@ -363,7 +366,6 @@ function Home() {
           ))}
         </div>
       </section>
-
 
       {/* Statistics Section */}
       <section className="bg-black text-white py-20">
@@ -397,8 +399,6 @@ function Home() {
           </div>
         </div>
       </section>
-
-
 
       <Footer />
     </div>

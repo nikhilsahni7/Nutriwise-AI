@@ -23,8 +23,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Plus, Trash2, Search, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
 export interface Recipe {
   id: string;
   name: string;
@@ -46,6 +47,7 @@ export default function CommunityRecipes() {
   const [description, setDescription] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false); // Added isSharing state
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
@@ -119,6 +121,7 @@ export default function CommunityRecipes() {
   };
 
   const handleShareRecipe = async () => {
+    setIsSharing(true); // Set isSharing to true
     try {
       const response = await fetch("/api/community", {
         method: "POST",
@@ -154,6 +157,8 @@ export default function CommunityRecipes() {
         description: "Failed to share recipe",
         variant: "destructive",
       });
+    } finally {
+      setIsSharing(false); // Set isSharing to false
     }
   };
 
@@ -288,12 +293,6 @@ export default function CommunityRecipes() {
                     placeholder="Enter recipe steps or generate them using AI"
                     rows={5}
                   />
-                  <Button
-                    onClick={handleGenerateRecipe}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? "Generating..." : "Generate with AI"}
-                  </Button>
                 </div>
               </div>
 
@@ -310,7 +309,16 @@ export default function CommunityRecipes() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleShareRecipe}>Share Recipe</Button>
+              <Button onClick={handleShareRecipe} disabled={isSharing}>
+                {isSharing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sharing...
+                  </>
+                ) : (
+                  "Share Recipe"
+                )}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
