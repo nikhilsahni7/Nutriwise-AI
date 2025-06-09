@@ -221,7 +221,7 @@ function Home() {
             every dish is a masterpiece.
           </motion.p>
 
-          <Link href="/auth/signin">
+          <Link href="/main">
             <motion.button
               className="group relative inline-flex items-center justify-center px-8 py-4 md:px-8 md:py-5 overflow-hidden font-semibold text-lg border-2 border-gray-300 rounded-full transition-all duration-300 hover:border-transparent hover:text-white transform hover:scale-105 bg-white hover:bg-black font-lato"
               whileHover={{ scale: 1.05 }}
@@ -305,17 +305,15 @@ function Home() {
             <motion.section
               key={index}
               ref={featuresRef}
-              className={`py-24 px-6 lg:px-12 ${
-                index % 2 === 0 ? "bg-white" : "bg-gray-50"
-              }`}
+              className={`py-24 px-6 lg:px-12 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                }`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
               <div
-                className={`max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${
-                  section.reverse ? "md:flex-row-reverse" : ""
-                }`}
+                className={`max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${section.reverse ? "md:flex-row-reverse" : ""
+                  }`}
               >
                 <div className={section.reverse ? "md:order-2" : ""}>
                   <motion.h2
