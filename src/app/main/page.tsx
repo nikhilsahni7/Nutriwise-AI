@@ -24,7 +24,7 @@ const Page = () => {
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <div className="text-4xl font-bold">You are not authenticated but it's okay 😐</div>
-            <div className="text-lg">We recommend signing in for the best experience.</div>
+            <div className="text-lg">We recommend signing in for using all the features.</div>
 
             <div className="mt-4">
               <a

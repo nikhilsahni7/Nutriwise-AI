@@ -226,9 +226,16 @@ export function AppSidebar() {
                     </DropdownMenu>
                   </SidebarMenuItem>
                 </SidebarMenu>
-                <DropdownMenuItem onClick={() => signOut()}>
-                  <button>Sign out</button>
-                </DropdownMenuItem>
+                {session && (
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    <button>Sign out</button>
+                  </DropdownMenuItem>
+                )}
+                {!session && (
+                  <DropdownMenuItem onClick={() => router.push("/auth/signin")}>
+                    <button>Sign in</button>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
